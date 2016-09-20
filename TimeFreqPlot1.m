@@ -7,7 +7,7 @@ electrodeNumLists{1} = [31 32 63 64]; % Electrodes of Interest(Right)      31 (O
 electrodeNumLists{2} = [29 28 60 61]; % Electrodes of Interest(Left) 
 
 blRange = [-0.5 0]; stRange = [0 0.5];
-a=2; e=2; s = 1; f = 1; o =1; t= 1;
+a=1; e=1; s = 1; f = 1; o =1; t= 1;
 
 freqLims = [0 100];
 figPSD = figure;
@@ -86,8 +86,8 @@ for i=1:length(indexList)
         
 %         ERPdata = mean(dataToAnalyseBLCorrected,1);
         subplot(plotHandlesPSD(c));
-        plot(ysbl,mean(log10(fftbl)),'g');hold on;
-        plot(ysst,mean(log10(fftst)),'r');
+        plot(ysbl,log10(mean(fftbl)),'g');hold on;
+        plot(ysst,log10(mean(fftst)),'r');
         legend('Baseline','Stimulus')
         xlabel('Frequency(Hz)'); ylabel('log_1_0 (Amplitude)');
         title(['Contrast = ',num2str(cValsUnique(c)), ' %']);
@@ -100,13 +100,13 @@ for i=1:length(indexList)
 %         hold(plotHandlesPSD,'on');
 figure(i+2)
 scaledxaxis = [log2(cValsUnique(2))-(log2(cValsUnique(3))-log2(cValsUnique(2))) log2(cValsUnique(2:end))];
-plot(scaledxaxis,MeanAlphaPowerChange,'b-'); hold on;
-plot(scaledxaxis,MeanBetaPowerChange,'k-');
-plot(scaledxaxis,MeanGammaPowerChange,'r-'); hold off;
+% plot(scaledxaxis,MeanAlphaPowerChange,'b-'); hold on;
+% plot(scaledxaxis,MeanBetaPowerChange,'k-');
+% plot(scaledxaxis,MeanGammaPowerChange,'r-'); hold off;
 
-% errorbar(scaledxaxis,MeanAlphaPowerChange,stdAlphaPowerChange,'b-'); hold on;
-% errorbar(scaledxaxis,MeanBetaPowerChange,stdBetaPowerChange,'k-');
-% errorbar(scaledxaxis,MeanGammaPowerChange,stdGammaPowerChange,'r-'); hold off;
+errorbar(scaledxaxis,MeanAlphaPowerChange,stdAlphaPowerChange,'b-'); hold on;
+errorbar(scaledxaxis,MeanBetaPowerChange,stdBetaPowerChange,'k-');
+errorbar(scaledxaxis,MeanGammaPowerChange,stdGammaPowerChange,'r-'); hold off;
 
 ax = gca;
 ax.XTick = [scaledxaxis];
