@@ -39,10 +39,10 @@ for i=1:length(indexList)
      figure(i)
      plotHandlesPSD = getPlotHandles(length(cValsUnique)/3,length(cValsUnique)/2,plotPos,plotGap,plotGap,0);
      
-     figure(i+2); colormap jet;
+     figure(i+numel(indexList)); colormap jet;
      plotHandlesTF = getPlotHandles(length(cValsUnique)/3,length(cValsUnique)/2,plotPos,plotGap,plotGap,0);
      
-     figure(i+3);
+     figure(i+2*numel(indexList));
      
      electrodeNumList = electrodeNumLists{1}; % Right Side
     
@@ -88,7 +88,7 @@ for i=1:length(indexList)
         xlabel('Frequency(Hz)'); ylabel('log10(Power)'); ylim([-8 4]);
         legend('Baseline','Stimulus');
         
-        figure(i+2*numel(indexList));
+        figure(i+numel(indexList));
         subplot(plotHandlesTF(c));
         movingwin = [diff(blRange) 0.01]; % in seconds. Change i from 1 to 4.
         [tfPower,tfTime,tfFreq] = mtspecgramc(dataToAnalyseBLCorrected',movingwin,params);
@@ -96,66 +96,41 @@ for i=1:length(indexList)
         pcolor(tfTime+timeVals(1),tfFreq,(chPower)); shading interp; xlabel('Time Period (second)'); ylabel('Frequency')
         title(['Contrast: ' num2str(cValsUnique(c)) '%']);
         colorbar;
-        xlim([-0.5 0.6]); caxis([-15 15]);
+        xlim([-0.5 0.6]); caxis([-10 10]);
         
-        figure(i+4*numel(indexList));
+        
         AlphaPos = find(blFreq>=AlphaRange(1) & blFreq<=AlphaRange(2));
         BetaPos = find(blFreq>=BetaRange(1) & blFreq<=BetaRange(2));
         GammaPos = find(blFreq>=GammaRange(1) & blFreq<=GammaRange(2));
         
-        clear AlphaPowerChange 
-        AlphaPowerChange = log(mean((stPower(AlphaPos,:)),1))-log(mean((blPower(AlphaPos,:)),1));
-        BetaPowerChange = log(mean((stPower(BetaPos,:)),1))-log(mean((blPower(BetaPos,:)),1));
-        GammaPowerChange = log(mean((stPower(GammaPos,:)),1))-log(mean((blPower(GammaPos,:)),1));
+%         clear AlphaPowerChange BetaPowerChange GammaPowerChange
+        AlphaPowerChange(c) = log(mean((stPower(AlphaPos,:)),1))-log(mean((blPower(AlphaPos,:)),1));
+        BetaPowerChange(c) = log(mean((stPower(BetaPos,:)),1))-log(mean((blPower(BetaPos,:)),1));
+        GammaPowerChange(c) = log(mean((stPower(GammaPos,:)),1))-log(mean((blPower(GammaPos,:)),1));
         
-        
+    
+       
      end
-      
-%         fftbl = abs(fft(dataToAnalyseBLCorrected(:,blPos),[],2));
-%         fftst = abs(fft(dataToAnalyseBLCorrected(:,stPos),[],2));
-%         
-%         AlphaPowerChange = (fftst(:,AlphaPos))./(fftbl(:,AlphaPos));
-%         BetaPowerChange = (fftst(:,BetaPos))./(fftbl(:,BetaPos));
-%         GammaPowerChange = (fftst(:,GammaPos))./(fftbl(:,GammaPos));
-%         
-%         MeanAlphaPowerChange(c)= log10(mean(mean(AlphaPowerChange,1),2));
-%         MeanBetaPowerChange(c)= log10(mean(mean(BetaPowerChange,1),2));
-%         MeanGammaPowerChange(c)= log10(mean(mean(GammaPowerChange,1),2));
-%         
-%         stdAlphaPowerChange(c) = log10(std(mean(AlphaPowerChange,1)));
-%         stdBetaPowerChange(c) = log10(std(mean(  BetaPowerChange,1)));
-%         stdGammaPowerChange(c) = log10(std(mean(GammaPowerChange,1)));
+     
+        figure(i+2*numel(indexList));
+        scaledxaxis = [log2(cValsUnique(2))-(log2(cValsUnique(3))-log2(cValsUnique(2))) log2(cValsUnique(2:end))];
+        plot(scaledxaxis,AlphaPowerChange,'b-'); hold on;
+        plot(scaledxaxis,BetaPowerChange,'k-');
+        plot(scaledxaxis,GammaPowerChange,'r-');hold on;
+        ax = gca;
+        ax.XTick = [scaledxaxis];
+        ax.XTickLabel = {'0','6.25', '12.5', '25', '50', '100'};
+        legend('Change in Alpha Power','Change in Beta Power','Change in Gamma Power')
+        xlabel('Contrast(%)'),ylabel('Change in Power at different Freq. Bands');
         
-%         ERPdata = mean(dataToAnalyseBLCorrected,1);
-%         subplot(plotHandlesPSD(c));
-%         plot(ysbl,mean(log10(fftbl)),'g');hold on;
-%         plot(ysst,mean(log10(fftst)),'r');
-%         legend('Baseline','Stimulus')
-%         xlabel('Frequency(Hz)'); ylabel('log_1_0 (Amplitude)');
-%         title(['Contrast = ',num2str(cValsUnique(c)), ' %']);
-%         xlim([0 50]); ylim([0 5]);
-         
-%         
-%         plot(timeVals,ERPdata);
-%         xlim([-0.1 0.5])
+        
 
-%         hold(plotHandlesPSD,'on');
-% figure(i+2)
-% scaledxaxis = [log2(cValsUnique(2))-(log2(cValsUnique(3))-log2(cValsUnique(2))) log2(cValsUnique(2:end))];
-% plot(scaledxaxis,MeanAlphaPowerChange,'b-'); hold on;
-% plot(scaledxaxis,MeanBetaPowerChange,'k-');
-% plot(scaledxaxis,MeanGammaPowerChange,'r-'); hold off;
 % 
 % % errorbar(scaledxaxis,MeanAlphaPowerChange,stdAlphaPowerChange,'b-'); hold on;
 % % errorbar(scaledxaxis,MeanBetaPowerChange,stdBetaPowerChange,'k-');
 % % errorbar(scaledxaxis,MeanGammaPowerChange,stdGammaPowerChange,'r-'); hold off;
 % 
-% ax = gca;
-% ax.XTick = [scaledxaxis];
-% ax.XTickLabel = {'0','6.25', '12.5', '25', '50', '100'};
-% legend('Change in Alpha Power','Change in Beta Power','Change in Gamma Power')
-% xlabel('Contrast(%)'),ylabel('Change in Power at different Freq. Bands');
-% end        
+   
 
-%         
+         
  end        

@@ -1,33 +1,34 @@
-% Spectral Analysis of EEG signals for six Contrast Conditions for subjects 
-% who performed GRF Protocol for all the spatial location of stimuli
-
+% Spectral Analysis of EEG signals for Contrast Conditions for Monkey
+% Microelectrode Data
+% who performed GRF Protocol for stimuli centred on the RF of
+% microelectrode grid
 clear; clc; close all;
 
-electrodeNumLists{1} = [31 32 63 64]; % Electrodes of Interest(Right)      31 (O2),32(PO10),63(PO4),64(PO8)
-electrodeNumLists{2} = [29 28 60 61]; % Electrodes of Interest(Left) 
+electrodeNumLists{1} = [32 41 77]; % Electrodes of Interest
+% electrodeNumLists{2} = [29 28 60 61]; % Electrodes of Interest
 
-blRange = [-0.5 0]; stRange = [0 0.5];
-a=2; e=2; s = 1; f = 1; o =1; t= 1;
+blRange = [-0.25 0]; stRange = [0.25 0.5];
+a=1; e=1; s = 1; f = 1; o =1; t= 2;
 
 freqLims = [0 100];
 
 plotPos = [0.1 0.1 0.85 0.85]; plotGap = 0.1;
 
-indexList = [23 26];
-[subjectNames,expDates,protocolNames,stimType,deviceName,capLayout] = allProtocolsCRFAttentionEEG;
-folderSourceString='H:'; gridType = 'EEG';
+indexList = 45; %[];
+[expDates,protocolNames,stimType] = getAllProtocols('tutu','Microelectrode');
+folderSourceString='H:'; subjectName = 'tutu';gridType = 'Microelectrode';
 
 
 for i=1:length(indexList)
-    subjectName = subjectNames{indexList(i)};
+%     subjectName = subjectNames{indexList(i)};
     expDate = expDates{indexList(i)};
     protocolName = protocolNames{indexList(i)};
     load(fullfile(folderSourceString,'data',subjectName,gridType,expDate,protocolName,'extractedData','parameterCombinations.mat'));    
     load(fullfile(folderSourceString,'data',subjectName,gridType,expDate,protocolName,'segmentedData','LFP','lfpInfo.mat'));           
     
 
-        Fs=1000;  
-        blRange = [-0.5 0]; stRange = [0 0.5];
+        Fs=2000;  
+%         blRange = [-0.25 0]; stRange = [0.25 0.5];
         N = round(Fs*diff(blRange)); ysbl = Fs*(0:1/N:1-1/N);
         N = round(Fs*diff(stRange)); ysst = Fs*(0:1/N:1-1/N);        
         blPos = find(timeVals>=blRange(1),1) + (1:N);
@@ -37,16 +38,16 @@ for i=1:length(indexList)
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Plot %%%%%%%%%%%%%%%%%%%%%%%%%%%
      figure(i)
-     plotHandlesPSD = getPlotHandles(length(cValsUnique)/3,length(cValsUnique)/2,plotPos,plotGap,plotGap,0);
+     plotHandlesPSD = getPlotHandles((length(cValsUnique)-1)/3,(length(cValsUnique)+1)/2,plotPos,plotGap,plotGap,0);
      
      figure(i+numel(indexList)); colormap jet;
-     plotHandlesTF = getPlotHandles(length(cValsUnique)/3,length(cValsUnique)/2,plotPos,plotGap,plotGap,0);
+     plotHandlesTF = getPlotHandles((length(cValsUnique)-1)/3,(length(cValsUnique)+1)/2,plotPos,plotGap,plotGap,0);
      
      figure(i+2*numel(indexList));
      
      electrodeNumList = electrodeNumLists{1}; % Right Side
     
-     AlphaRange = [8 12]; BetaRange = [16 30]; GammaRange = [30 80];
+     AlphaRange = [8 12]; BetaRange = [16 30]; GammaRange = [30 80]; SSVEPRange = 2*tValsUnique(t);
      
      
      for c=1:length(cValsUnique)
@@ -90,23 +91,26 @@ for i=1:length(indexList)
         
         figure(i+numel(indexList));
         subplot(plotHandlesTF(c));
+%         movingwin = [0.25 0.025];
         movingwin = [diff(blRange) 0.01]; % in seconds. Change i from 1 to 4.
         [tfPower,tfTime,tfFreq] = mtspecgramc(dataToAnalyseBLCorrected',movingwin,params);
         chPower = 10*(log10(tfPower)' - repmat(log10(blPower),1,size(tfPower,1)));
         pcolor(tfTime+timeVals(1),tfFreq,(chPower)); shading interp; xlabel('Time Period (second)'); ylabel('Frequency')
         title(['Contrast: ' num2str(cValsUnique(c)) '%']);
-        colorbar;
-        xlim([-0.5 0.6]); caxis([-10 10]);
+        colorbar; caxis([-10 10]);
+        xlim([-0.5 0.75]); 
         
         
         AlphaPos = find(blFreq>=AlphaRange(1) & blFreq<=AlphaRange(2));
         BetaPos = find(blFreq>=BetaRange(1) & blFreq<=BetaRange(2));
         GammaPos = find(blFreq>=GammaRange(1) & blFreq<=GammaRange(2));
+        SSVEPPos = find(blFreq == SSVEPRange);
         
 %         clear AlphaPowerChange BetaPowerChange GammaPowerChange
-        AlphaPowerChange(c) = 10*log(mean((stPower(AlphaPos,:)),1))-10*log(mean((blPower(AlphaPos,:)),1));
-        BetaPowerChange(c) = 10*log(mean((stPower(BetaPos,:)),1))-10*log(mean((blPower(BetaPos,:)),1));
-        GammaPowerChange(c) = 10*log(mean((stPower(GammaPos,:)),1))-10*log(mean((blPower(GammaPos,:)),1));
+        AlphaPowerChange(c) = 10*log10(mean((stPower(AlphaPos,:)),1))-10*log10(mean((blPower(AlphaPos,:)),1));
+        BetaPowerChange(c) = 10*log10(mean((stPower(BetaPos,:)),1))-10*log10(mean((blPower(BetaPos,:)),1));
+        GammaPowerChange(c) = 10*log10(mean((stPower(GammaPos,:)),1))-10*log10(mean((blPower(GammaPos,:)),1));
+        SSVEPPowerChange(c) = 10*log10(stPower(SSVEPPos))-10*log10(blPower(SSVEPPos));
         
         semAlphaPowerChange(c) = std((10*log10(stPower(AlphaPos,:))-10*log10(blPower(AlphaPos,:))))/sqrt(length(stPower(AlphaPos,:)));
         semBetaPowerChange(c) = std((10*log10(stPower(BetaPos,:))-10*log10(blPower(BetaPos,:))))/sqrt(length(stPower(BetaPos,:)));
@@ -116,19 +120,22 @@ for i=1:length(indexList)
      
         figure(i+2*numel(indexList));
         scaledxaxis = [log2(cValsUnique(2))-(log2(cValsUnique(3))-log2(cValsUnique(2))) log2(cValsUnique(2:end))];
-%         plot(scaledxaxis,AlphaPowerChange,'b-'); hold on;
-%         plot(scaledxaxis,BetaPowerChange,'k-');
-%         plot(scaledxaxis,GammaPowerChange,'r-');hold on;
-
+%         plot(scaledxaxis,AlphaPowerChange,'bo-','LineWidth',2); hold on;
+%         plot(scaledxaxis,BetaPowerChange,'ko-','LineWidth',2);
+%         plot(scaledxaxis,GammaPowerChange,'ro-','LineWidth',2);hold on;
+        
         errorbar(scaledxaxis,AlphaPowerChange,semAlphaPowerChange,'bo-','LineWidth',2); hold on;
         errorbar(scaledxaxis,BetaPowerChange,semBetaPowerChange,'ko-','LineWidth',2);
-        errorbar(scaledxaxis,GammaPowerChange,semGammaPowerChange,'ro-','LineWidth',2); hold on;
+        errorbar(scaledxaxis,GammaPowerChange,semGammaPowerChange,'ro-','LineWidth',2); 
+        plot(scaledxaxis,SSVEPPowerChange,'co-','LineWidth',2); hold on;
         ax = gca;
         ax.XTick = [scaledxaxis];
-        ax.XTickLabel = {'0','6.25', '12.5', '25', '50', '100'};
-        legend('Change in Alpha Power','Change in Beta Power','Change in Gamma Power')
-        xlabel('Contrast(%)'),ylabel('Change in Power at different Freq. Bands');
+        ax.XTickLabel = {'0','3.125','6.25', '12.5', '25', '50', '100'};
+        legend('Change in Alpha Power','Change in Beta Power','Change in Gamma Power ')
+        xlabel('Contrast(%)'),ylabel('Change in Power (decibel)');
+        title(['Change in Power at Alpha-Beta-Gamma for Monkey: ',subjectName]);
         
-     
-       
+    
+
+        
  end        
