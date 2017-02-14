@@ -52,6 +52,7 @@ for i=1:length(indexList)
                 dataToAnalyseBLMatrix = repmat(dataMean,1,sizeDTA);
                 dataToAnalyseBLCorrected = analogData - dataToAnalyseBLMatrix;
                 erpData = mean(dataToAnalyseBLCorrected,1);
+                semERPdata = std(erpData)/sqrt(length(erpData)); % standard error of the mean
                 
                 if (a==1) && (e==1)
                     locPlotHandle = plotHandles(2,1);
@@ -64,7 +65,8 @@ for i=1:length(indexList)
                 end
                     
                 hold(locPlotHandle,'on');
-                plot(locPlotHandle,timeVals,erpData,'color',contrastColor(c,:),'linewidth',1); 
+                plot(locPlotHandle,timeVals,erpData,'color',contrastColor(c,:),'linewidth',1);
+%                 plot(locPlotHandle,timeVals,semERPdata,'color',contrastColor(c,:),'linewidth',1);
                 
                 rmsERPdata(a,e,c) = rms(erpData(:,erpPos)) - rms(erpData(:,blPos));
             end

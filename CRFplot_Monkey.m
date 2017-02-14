@@ -2,8 +2,8 @@
 % who performed GRF Protocol for all the spatial location of stimuli
 
 clear; clc; close all;
-
-electrodeNumLists{1} = [32 41 77]; % Electrodes of Interest
+load('H:\Programs\DataMAP\ReceptiveFieldData\kesariMicroelectrodeRFData.mat')
+electrodeNumLists{1} = [highRMSElectrodes]; % Electrodes of Interest
 %electrodeNumLists{2} = [29 28 60 61]; % Electrodes of Interest
 
 blPeriod = [-0.2 0]; erpPeriod = [0.05 0.25];
@@ -12,9 +12,9 @@ s=1; f=1; o=1; t=1;
 yLims = [-300 250]; xLims = [-0.2 0.7];
 plotPos = [0.1 0.1 0.8 0.8]; plotGap = 0.05;
 
-indexList = 45;%[];
-[expDates,protocolNames,stimType] = getAllProtocols('tutu','Microelectrode');
-folderSourceString='H:'; subjectName = 'tutu'; gridType = 'Microelectrode';
+indexList = 469;%[];
+[expDates,protocolNames,stimType] = getAllProtocols('kesari','Microelectrode');
+folderSourceString='H:'; subjectName = 'kesari'; gridType = 'Microelectrode';
 
 for i=1:length(indexList)
     %subjectName = subjectNames{indexList(i)};
@@ -72,7 +72,7 @@ for i=1:length(indexList)
                 rmsERPdata(a,e,c) = rms(erpData(:,erpPos)) - rms(erpData(:,blPos));
             end
             
-            legend('0','3.125','6.25','12.5','25','50','100');
+            legend('0','1.62','3.125','6.25','12.5','25','50','100');
             ylim(yLims); 
             xlim(xLims); 
             title(['Azimuth: ' num2str(aValsUnique(a)) '; Elevation: ' num2str(eValsUnique(e))]);
@@ -115,5 +115,5 @@ for i=1:length(indexList)
 %     % xlim([1.643 6.644]);
 %     legend('','a = -6, e = -6','','a = -6, e = 0','','a = 0, e = -6','','a = 0, e = 0');
     ylabel('RMS value of ERP Amplitude'); xlabel('Contrast(%)');
-    title('Contrast Response for different spatial locations for Monkey T');
+    title('Contrast Response for Monkey T');
 end
