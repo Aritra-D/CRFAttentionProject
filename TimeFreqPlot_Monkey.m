@@ -5,7 +5,7 @@
 
 clear; close all; %clc
 
-blRange = [-0.25 0]; stRange = [0.25 0.5];
+blRange = [-1 0]; stRange = [0.25 1.25];
 a=1; e=1; s = 1; f = 1; t= 1; % o =1; % Stimulus Parameters
 
 freqLims = [0 100];
@@ -13,20 +13,37 @@ freqLims = [0 100];
 plotPos = [0.1 0.1 0.85 0.85]; plotGap = 0.1;
 
 % Data Loading
-indexList = [473]; %[];
+indexList = [473]; %[]; %471 = stationary Grating %473 = 8Hz Counterphase Grating 
+                    %475 = 10 Hz Counterphase Grating %483 = 10 Hz On-Off Flicker Grating
 [expDates,protocolNames,stimType] = getAllProtocols('kesari','Microelectrode');
 folderSourceString='H:'; subjectName = 'kesari';gridType = 'Microelectrode';
 load(fullfile(folderSourceString,'programs','DataMap','ReceptiveFieldData',[subjectName,'MicroelectrodeRFData.mat']));
 electrodeNumLists{1} = [highRMSElectrodes([1 2 3])]; % Electrodes of Interest
 % electrodeNumLists{2} = [29 28 60 61]; % Electrodes of Interest
 
+
+
 for i=1:length(indexList)
 
-%     subjectName = subjectNames{indexList(i)};
+%   subjectName = subjectNames{indexList(i)};
     expDate = expDates{indexList(i)};
     protocolName = protocolNames{indexList(i)};
-    load(fullfile(folderSourceString,'data',subjectName,gridType,expDate,protocolName,'extractedData','parameterCombinations.mat'));    
-    load(fullfile(folderSourceString,'data',subjectName,gridType,expDate,protocolName,'segmentedData','LFP','lfpInfo.mat'));           
+    folderName = fullfile(folderSourceString,'data',subjectName,gridType,expDate,protocolName);
+    load(fullfile(folderName,'extractedData','parameterCombinations.mat'));    
+    load(fullfile(folderName,'segmentedData','LFP','lfpInfo.mat'));           
+    
+    % Get bad trials
+
+    folderExtract = fullfile(folderName,'extractedData');
+    folderSegment = fullfile(folderName,'segmentedData');
+    badTrialFile = fullfile(folderSegment,'badTrialsNew.mat');
+    if ~exist(badTrialFile,'file')
+        disp('Bad trial file does not exist...');
+        badTrials=[];
+    else
+        badTrials = load(badTrialFile);
+        disp([num2str(length(badTrials)) ' bad trials']);
+    end
     
 
         Fs=2000;  
@@ -52,8 +69,9 @@ for i=1:length(indexList)
      
      electrodeNumList = electrodeNumLists{1}; % Right Side
     
-     AlphaRange = [8 12]; BetaRange = [16 30]; GammaRange = [30 80]; HighGammaRange = []; SSVEPRange = 2*tValsUnique(t);
-     
+     AlphaRange = [8 12]; BetaRange = [16 28]; GammaRange = [30 80]; HighGammaRange = [100 200]; SSVEPRange = 2*tValsUnique(t);
+ 
+    commonBaselineAcrossContrasts = [];MeanStimAcrossContrasts = [];
          
      for c=1:length(cValsUnique)
          
@@ -64,22 +82,23 @@ for i=1:length(indexList)
          analogDataElecwise = cell(length(oValsUnique),length(electrodeNumList));
             for iOri = 1:length(oValsUnique) 
                 goodPos = parameterCombinations{a,e,s,f,iOri,c,t};
+                goodPos = setdiff(goodPos,badTrials.badTrials);
                 
                 for j = 1:length(electrodeNumList) % Rigtht side 
-                    disp(num2str([iOri j]));
+                    disp(num2str([cValsUnique(c) iOri j]));
                     elecNum = electrodeNumList(j);
-                    electrodeData = load(fullfile(folderSourceString,'data',subjectName...
-                        ,gridType,expDate,protocolName,'segmentedData','LFP',['elec' num2str(elecNum) '.mat']));
+                    electrodeData = load(fullfile(folderSourceString,'data',subjectName,...
+                        gridType,expDate,protocolName,'segmentedData','LFP',['elec' num2str(elecNum) '.mat']));
                     analogDataElecwise{iOri,j} = electrodeData.analogData(goodPos,:);
-                    analogData = cat(1,analogData,electrodeData.analogData(goodPos,:));
+%                     analogData = cat(1,analogData,electrodeData.analogData(goodPos,:));
                 end
             end                      
                clear dataMean sizeDTA dataToAnalyseBLMatrix dataToAnalyseBLCorrected
                 
-                dataMean = mean(analogData(:,blPos),2);
-                sizeDTA = size(analogData,2);
-                dataToAnalyseBLMatrix = repmat(dataMean,1,sizeDTA);
-                dataToAnalyseBLCorrected = analogData;% - dataToAnalyseBLMatrix;
+%                 dataMean = mean(analogData(:,blPos),2);
+%                 sizeDTA = size(analogData,2);
+%                 dataToAnalyseBLMatrix = repmat(dataMean,1,sizeDTA);
+%                 dataToAnalyseBLCorrected = analogData;% - dataToAnalyseBLMatrix;
 %                 erpData = mean(dataToAnalyseBLCorrected,1);   %You get one value for Raw EEG amplitude for all 2048 Time Points 
              
      
@@ -122,12 +141,20 @@ for i=1:length(indexList)
                 end
         end
                 
+            AlphaPos = find(blFreq>=AlphaRange(1) & blFreq<=AlphaRange(2));
+            BetaPos = find(blFreq>=BetaRange(1) & blFreq<=BetaRange(2));
+            GammaPos = find(blFreq>=GammaRange(1) & blFreq<=GammaRange(2));
+            SSVEPPos = find(blFreq == SSVEPRange);
+        
                 
                 commonBaselineAcrossOri = squeeze(mean(log10(blPower(iOri,:,:)),1));
                 commonBaselineAcrossElec = squeeze(mean(commonBaselineAcrossOri,1));
+                commonBaselineAcrossContrasts = cat(1,commonBaselineAcrossContrasts,commonBaselineAcrossElec);
+                MeancommonBaselineAcrossContrasts = mean(commonBaselineAcrossContrasts,1);
                 
                 MeanStimAcrossOri = squeeze(mean(log10(stPower(iOri,:,:)),1));
                 MeanStimAcrossElec = squeeze(mean(MeanStimAcrossOri,1));
+                MeanStimAcrossContrasts = cat(1,MeanStimAcrossContrasts,MeanStimAcrossElec);
                 
                 stdStimAcrossElec = squeeze(std(MeanStimAcrossOri,1));
                 semStimAcrossElec = stdStimAcrossElec./sqrt(size(MeanStimAcrossOri,1));
@@ -144,18 +171,17 @@ for i=1:length(indexList)
 %                 line([AlphaRange(1) AlphaRange(1)],get(hax,'YLim'),'color',[1 0 0]);
                 plot(blFreq,commonBaselineAcrossElec,'g'); % squeeze(mean(log10(blPower1(iOri,:,:)),2))
                 hold on;
-                plot(stFreq,MeanStimAcrossElec,'k'); YLims =[-1 5];
-                line([blFreq(4) blFreq(4)],YLims); % squeeze(mean(log10(stPower1(iOri,:,:)),2))
+                plot(stFreq,MeanStimAcrossElec,'k');  YLim =[-1 4]; yL = get(gca,'YLim');% squeeze(mean(log10(stPower1(iOri,:,:)),2)) 
+                line([blFreq(AlphaPos(1)) blFreq(AlphaPos(1))],yL,'color','b'); line([blFreq(AlphaPos(end)) blFreq(AlphaPos(end))],yL ,'color', 'b');
+                line([blFreq(BetaPos(1)) blFreq(BetaPos(1))],yL,'color','k'); line([blFreq(BetaPos(end)) blFreq(BetaPos(end))],yL ,'color', 'k');
+                line([blFreq(GammaPos(1)) blFreq(GammaPos(1))],yL,'color','r'); line([blFreq(GammaPos(end)) blFreq(GammaPos(end))],yL ,'color', 'r');
                 title(['Contrast: ' num2str(cValsUnique(c)) '%']);
-                xlabel('Frequency(Hz)'); ylabel('log10(Power)'); ylim(YLims);
+                xlabel('Frequency(Hz)'); ylabel('Power (Bel)'); ylim(YLim);
                 legend('Baseline','stimulus');
                 
                 drawnow;
 
-            AlphaPos = find(blFreq>=AlphaRange(1) & blFreq<=AlphaRange(2));
-            BetaPos = find(blFreq>=BetaRange(1) & blFreq<=BetaRange(2));
-            GammaPos = find(blFreq>=GammaRange(1) & blFreq<=GammaRange(2));
-            SSVEPPos = find(blFreq == SSVEPRange);
+            
                 
                 AlphaPowerChange(c) = mean(MeanStimAcrossElec(:,AlphaPos)-commonBaselineAcrossElec(:,AlphaPos),2);
                 semAlphaPowerChange(c) = mean(semStimAcrossElec(:,AlphaPos),2);
@@ -228,7 +254,7 @@ for i=1:length(indexList)
 %         semGammaPowerChange(c) = std((10*log10(stPower(GammaPos,:))-10*log10(blPower(GammaPos,:))))/sqrt(length(stPower(GammaPos,:)));
 
 %         powerChangeSSVEPCon(c) = {powerChangeSSVEP};
-       
+      
      end
      
                 figure(i+length(indexList));
@@ -250,9 +276,47 @@ for i=1:length(indexList)
                 legend('Change in Alpha Power','Change in Beta Power','Change in Gamma Power')
             end
         xlabel('Contrast(%)'),ylabel('Change in Power (bel)');
-        title(['Change in Power at Alpha-Beta-Gamma for Monkey: ',subjectName]);
+        title(['Change in Power at Alpha-Beta-Gamma for Monkey: ',subjectName ' , Protocol Index: ',num2str(indexList(i))]);
         
-    
+                
+                 figure(i+2*length(indexList));hold on;
+                 contrastColor = hsv(length(cValsUnique));
+                 plot(blFreq,0*(MeanStimAcrossContrasts(1,:)-MeancommonBaselineAcrossContrasts),'k','LineWidth',3); 
+                 for iCon = 1:length(cValsUnique)
+                 plot(blFreq, MeanStimAcrossContrasts(iCon,:)-MeancommonBaselineAcrossContrasts,'color',contrastColor(iCon,:),'LineWidth',1.5); 
+                 end
+                 YLim =[-0.4 0.6]; yL2 = get(gca,'YLim');
+                 line([blFreq(AlphaPos(1)) blFreq(AlphaPos(1))],yL2,'color','b'); line([blFreq(AlphaPos(end)) blFreq(AlphaPos(end))],yL2 ,'color', 'b');
+                 line([blFreq(BetaPos(1)) blFreq(BetaPos(1))],yL2,'color','k'); line([blFreq(BetaPos(end)) blFreq(BetaPos(end))],yL2 ,'color', 'k');
+                 line([blFreq(GammaPos(1)) blFreq(GammaPos(1))],yL2,'color','r'); line([blFreq(GammaPos(end)) blFreq(GammaPos(end))],yL2 ,'color', 'r');
+                 hold off;
+                 
+                 xlabel('Frequency (Hz)'); ylabel('Change in Power (Bel)');
+                 title(['Change in Power with varying contrast for Monkey: ',subjectName ', Protocol Index: ', num2str(indexList(i))])
+                 legend('baseline','0%','1.6%','3.1%','6.2%','12.5%','25%','50%','100%')
+                 
+%                   % Curve Fitting
+%                   
+%                   X = scaledxaxis';
+%                    Y = AlphaPowerChange'; 
+%                    Z = GammaPowerChange';
+%                 fo = fitoptions('Method','NonlinearLeastSquares',...
+%                        'Lower',[0,1],...
+%                        'Upper',[Inf,max(X)],...
+%                        'StartPoint',[1 1]);
+%                 ft = fittype('a*(x^n/(x^n + b^n))','problem','n','options',fo);
+%                 [curve2,gof2] = fit(X,Y,ft,'problem',2);
+%                 [curve3,gof3] = fit(X,Z,ft,'problem',2);
+%                 figure(i+length(indexList)); hold on;
+%                 plot(curve2,'r-');xlabel('Contrast(%)'),ylabel('Change in Power');
+%                 plot(curve3,'r-');xlabel('Contrast(%)'),ylabel('Change in Power');
+%                 
+%                     paramStart = [0,0];
+%                     x = lsqcurvefit(@nakaRushton,paramStart,scaledxaxis,GammaPowerChange);
+%         
+%                     ydataprime = nakaRushton(x,scaledxaxis);
+%                     plot(scaledxaxis,ydataprime,'r-');hold on
+%                     legend('Actual','Estimated');
 
-        
- end        
+end        
+ 

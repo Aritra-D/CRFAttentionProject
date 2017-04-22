@@ -2,7 +2,7 @@
 
 clear; close all;
 
-blRange = [-0.5 0]; stRange = [0. 0.5];
+blRange = [-0.25 0]; stRange = [0. 0.25];
 
 a=1; e=1; s = 1; f = 1; t= 1;  % Stimulus Parameter Combinations
 
@@ -50,7 +50,7 @@ for i=1:length(indexList)
                 goodPos = parameterCombinations{a,e,s,f,iOri,c,t};
                 
                 for j = 1:length(electrodeNumList) % Rigtht side 
-                    disp(num2str([iOri j]));
+                    disp(num2str([c iOri j]));
                     elecNum = electrodeNumList(j);
                     electrodeData = load(fullfile(folderSourceString,'data',subjectName...
                         ,gridType,expDate,protocolName,'segmentedData','Spikes',['elec' num2str(elecNum) '_SID' num2str(SourceUnitID(i)) '.mat']));
@@ -79,10 +79,30 @@ for i=1:length(indexList)
                         
                         
      end
-     errorbar(scaledxaxis,MeanChangeinFiringRateAcrossOriandElec,SEMChangeinFiringRateAcrossElec,'-ro','LineWidth',2); hold on;
-     ax = gca;
+     errorbar(scaledxaxis,(MeanChangeinFiringRateAcrossOriandElec),(SEMChangeinFiringRateAcrossElec),'ro','LineWidth',2); hold on;
+%         paramStart = [1,1];
+%         x = lsqcurvefit(@nakaRushton,paramStart,scaledxaxis,MeanChangeinFiringRateAcrossOriandElec);
+%         
+%         ydataprime = nakaRushton(x,scaledxaxis);
+%         plot(scaledxaxis,ydataprime,'r-');hold on
+%         legend('Actual','Estimated');
+        
+        ax = gca;
         ax.XTick = scaledxaxis;
         ax.XTickLabel = {'0','1.5','3.1','6.2', '12.5', '25', '50', '100'};
         xlabel('Contrast(%)'),ylabel('Change in Firing Rate (spikes/sec)');
         title(['Change in Firing Rate (Baseline vs. Stimulus) for Monkey: ',subjectName]);
+        
+        X = scaledxaxis';
+        Y = MeanChangeinFiringRateAcrossOriandElec';
+        
+        
+        % Curve Fitting
+        fo = fitoptions('Method','NonlinearLeastSquares',...
+               'Lower',[0,0],...
+               'Upper',[Inf,max(X)],...
+               'StartPoint',[0 0]);
+        ft = fittype('a*(x^n/(x^n + b^n))','problem','n','options',fo);
+        [curve2,gof2] = fit(X,Y,ft,'problem',2);
+        plot(curve2,'r-');xlabel('Contrast(%)'),ylabel('Change in Firing Rate (spikes/sec)');
 end
