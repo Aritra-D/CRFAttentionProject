@@ -1,6 +1,8 @@
 function [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType)
 
-if ~exist('gridType','var');                            gridType = 'EEG'; end
+if ~exist('gridType','var')                            
+    gridType = 'EEG';
+end
 
 % FolderSourceString for extracted dataset
 if strcmp(getenv('computername'),'RAYLABPC-ARITRA') || strcmp(getenv('username'),'RayLabPC-Aritra')
@@ -44,5 +46,4 @@ for i=1:numSubjects
     expDates{i} = allExpDates{protocolList{i}};
     protocolNames{i} = allProtocolNames{protocolList{i}};
 end
-
 
