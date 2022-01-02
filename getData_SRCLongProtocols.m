@@ -1,312 +1,6 @@
-function [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols(protocolType,gridType,timingParameters,tapers,freqRanges)
-
-[subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType);
-
-deviceName = 'BP';
-capType = 'actiCap64';
-numFreqs = length(freqRanges);
-
-% Fixed indexing combinations
-c = 1; s = 1; % Contrast and StimType Index are set as 1 for SRC-Long Protocols
-
-for iRef = 1:2
-    clear powerValsBL powerValsST powerValsTG electrodeList
-    clear powerValsBL_trialAvg powerValsST_trialAvg powerValsTG_trialAvg
-    for iSub = 1:size(subjectNames,1)
-        disp(['SUBJECT: ' num2str(iSub) ', EXPDATE:' num2str(expDates{iSub}) ', PROTOCOL:' num2str(protocolNames{iSub})])
-        clear badTrials badElectrodes
-        folderName = fullfile(dataFolderSourceString,'data',subjectNames{iSub},gridType,expDates{iSub},protocolNames{iSub});
-        folderExtract= fullfile(folderName,'extractedData');
-        folderSegment= fullfile(folderName,'segmentedData');
-        folderLFP = fullfile(folderSegment,'LFP');
-        
-        % load LFP Info
-        [analogChannelsStored,timeVals,~,~] = loadlfpInfo(folderLFP);
-        
-        % Get Parameter Combinations for SRC-Long Protocols
-        [parameterCombinations,cValsUnique,tValsUnique,eValsUnique,aValsUnique,sValsUnique]= ...
-            loadParameterCombinations(folderExtract); %#ok<ASGLU>
-        
-        % timing related Information
-        Fs = round(1/(timeVals(2)-timeVals(1)));
-        if round(diff(timingParameters.blRange)*Fs) ~= round(diff(timingParameters.stRange)*Fs)
-            disp('baseline and stimulus ranges are not the same');
-        else
-            range = timingParameters.blRange;
-            erpRange = timingParameters.erpRange;
-            rangePos = round(diff(range)*Fs);
-            erpRangePos = round(diff(erpRange)*Fs);
-            blPos = find(timeVals>=timingParameters.blRange(1),1)+ (1:rangePos);
-            stPos = find(timeVals>=timingParameters.stRange(1),1)+ (1:rangePos);
-            tgPos = find(timeVals>=timingParameters.tgRange(1),1)+ (1:rangePos);
-            erpPos = find(timeVals>=timingParameters.erpRange(1),1)+ (1:erpRangePos);
-            freqVals_fft = 0:1/diff(range):Fs-1/diff(range);
-        end
-        
-        % Set up params for MT
-        params.tapers   = tapers;
-        params.pad      = -1;
-        params.Fs       = Fs;
-        params.fpass    = [0 250];
-        params.trialave = 1;
-        
-        % Set up movingWindow parameters for time-frequency plot
-        winSize = 0.1;
-        winStep = 0.025;
-        movingwin = [winSize winStep];
-        
-        % Electrode and trial related Information
-        photoDiodeChannels = [65 66];
-        
-        switch iRef
-            case 1; refType = 'unipolar';
-            case 2; refType = 'bipolar';
-        end
-        
-        electrodeList = getElectrodeList(capType,refType,1);
-        
-        % Get bad trials
-        badTrialFile = fullfile(folderSegment,'badTrials_v5.mat');
-        if ~exist(badTrialFile,'file')
-            disp('Bad trial file does not exist...');
-            badElecs = []; badTrials=[];
-        else
-            [badTrials,badElectrodes] = loadBadTrials(badTrialFile);
-            badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]);
-            disp([num2str(length(badTrials)) ' bad trials']);
-        end
-        
-        highPriorityElectrodeNums = getHighPriorityElectrodes(capType);
-        
-        if strcmp(refType,'unipolar')
-            badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityElectrodeNums,badElecsAll);
-            badElecs{iRef}{iSub} = intersect(setdiff(analogChannelsStored,photoDiodeChannels),badElecsAll);
-            disp(['Unipolar, all bad elecs: ' num2str(length(badElecsAll)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityElectrodeNums,badElecsAll))) ]);
-            
-        elseif strcmp(refType,'bipolar')
-            count =1; badBipolarElecs = [];
-            for iBipolarElec = 1:length(electrodeList)
-                if any(electrodeList{iBipolarElec}{1}(1) == badElecsAll) || any(electrodeList{iBipolarElec}{1}(2) == badElecsAll)
-                    badBipolarElecs(count) = iBipolarElec;
-                    count = count+1;
-                end
-            end
-            
-            if ~exist('badBipolarElecs','var')
-                badBipolarElecs = [];
-            end
-            
-            badElecs{iRef}{iSub} = badBipolarElecs;
-            highPriorityBipolarElectrodeNums = [93 94 101 102 96 97 111 107 112];
-            badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityBipolarElectrodeNums,badBipolarElecs);
-            disp(['Bipolar, all bad elecs: ' num2str(length(badBipolarElecs)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityBipolarElectrodeNums,badBipolarElecs))) ]);
-        end
-        
-        % main Loop
-        for iElec = 1:length(electrodeList)
-            clear x
-            if iRef == 1
-                clear x
-                %                     disp(['Processing electrode no: ' num2str(electrodeList{iElec}{1})])
-                if iElec == length(electrodeList)
-                    disp('Processed unipolar electrodes')
-                end
-                x = load(fullfile(folderLFP,['elec' num2str(electrodeList{iElec}{1}) '.mat']));
-            elseif iRef == 2
-                clear x1 x2 x
-                %                     disp(['Processing bipolar electrode no. ' num2str(iElec) ': electrode ID: ' num2str(electrodeList{iElec}{1}(1)) ' - ' num2str(electrodeList{iElec}{1}(2))])
-                if iElec == length(electrodeList)
-                    disp('Processed bipolar electrodes')
-                end
-                x1 = load(fullfile(folderLFP,['elec' num2str(electrodeList{iElec}{1}(1)) '.mat']));
-                x2 = load(fullfile(folderLFP,['elec' num2str(electrodeList{iElec}{1}(2)) '.mat']));
-                x.analogData.stimOnset = x1.analogData.stimOnset-x2.analogData.stimOnset;
-                x.analogData.targetOnset = x1.analogData.targetOnset-x2.analogData.targetOnset;
-            end
-            
-            for iEOTCode = 1: length(eValsUnique)
-                for iAttendLoc = 1: length(aValsUnique)
-                    for iTF = 1: length(tValsUnique)
-                        clear goodPos_stimOnset goodPos_targetOnset
-                        goodPos_stimOnset = setdiff(parameterCombinations.stimOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
-                        goodPos_targetOnset = setdiff(parameterCombinations.targetOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
-                        
-                        
-                        if isempty(goodPos_stimOnset)
-                            disp('No entries for this combination..')
-                        else
-                            if iRef==1 && iElec ==1
-                                disp([iEOTCode iAttendLoc iTF length(goodPos_stimOnset)])
-                                trialNums(iSub,iEOTCode,iAttendLoc,iTF) = length(goodPos_stimOnset);
-                            end
-                            
-                            % erp
-                            erp_stimOnset = mean(x.analogData.stimOnset(goodPos_stimOnset,:),1);
-                            erp_targetOnset = mean(x.analogData.targetOnset(goodPos_targetOnset,:),1);
-                            % Baseline Correction
-                            erp_stimOnset = erp_stimOnset - repmat(mean(erp_stimOnset(:,blPos),2),1,size(erp_stimOnset,2));
-                            erp_targetOnset = erp_targetOnset - repmat(mean(erp_targetOnset(:,blPos),2),1,size(erp_targetOnset,2));
-                            
-                            erpStim(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = erp_stimOnset;
-                            erpTarget(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = erp_targetOnset;
-                            RMSValsBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_stimOnset(blPos));
-                            RMSValsERP_Stim(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_stimOnset(erpPos));
-                            RMSValsERP_Target(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_targetOnset(erpPos));
-                            
-                            % fft
-                            fftBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,blPos),[],2))))); %#ok<*NASGU,*AGROW>
-                            fftST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,stPos),[],2)))));
-                            fftTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.targetOnset(goodPos_targetOnset,tgPos),[],2)))));
-                            
-                            % Segmenting data according to timePos
-                            dataBL = x.analogData.stimOnset(goodPos_stimOnset,blPos)';
-                            dataStimOnset = x.analogData.stimOnset(goodPos_stimOnset,stPos)';
-                            dataTargetOnset = x.analogData.targetOnset(goodPos_targetOnset,tgPos)';
-                            
-                            % power spectral density estimation
-                            [tmpEBL,freqValsBL] = mtspectrumc(dataBL,params);
-                            [tmpEST,freqValsST] = mtspectrumc(dataStimOnset,params);
-                            [tmpETG,freqValsTG] = mtspectrumc(dataTargetOnset,params);
-                            
-                            if isequal(freqValsBL,freqValsST) && isequal(freqValsBL,freqValsTG)
-                                freqVals = freqValsBL;
-                            end
-                            
-                            psdBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEBL);
-                            psdST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEST);
-                            psdTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpETG);
-                            
-                            for iFreqRange=1:4
-                                powerValsBL{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{iFreqRange}));
-                                powerValsST{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{iFreqRange}));
-                                powerValsTG{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpETG,freqVals,freqRanges{iFreqRange}));
-                            end
-                            
-                            % computing time-frequency spectrum by
-                            % multi-taper method (computed for both static
-                            % and counterphase stimuli)
-%                             [tmpEST_tf,tmpT_tf,freqVals_tf] = mtspecgramc(x.analogData.stimOnset(goodPos_stimOnset,:)',movingwin,params);
-%                             [tmpETG_tf,~,~] = mtspecgramc(x.analogData.targetOnset(goodPos_targetOnset,:)',movingwin,params);
-%                             
-%                             
-%                             timeVals_tf= tmpT_tf + timeVals(1);
-%                             energyST_tf = conv2Log(tmpEST_tf)';
-%                             energyTG_tf = conv2Log(tmpETG_tf)';
-%                             energyBL_tf = mean(energyST_tf(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
-%                             
-%                             mEnergyST_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf;
-%                             mEnergyTG_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf;
-%                             mEnergyBL_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf,1,length(timeVals_tf));
-%                             
-                            % Segmenting data according to timePos
-                            dataBL_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,blPos),1)';
-                            dataStimOnset_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,stPos),1)';
-                            dataTargetOnset_avg = mean(x.analogData.targetOnset(goodPos_targetOnset,tgPos),1)';
-                            
-                            % power spectral density estimation
-                            [tmpEBL_avg,~] = mtspectrumc(dataBL_avg,params);
-                            [tmpEST_avg,~] = mtspectrumc(dataStimOnset_avg,params);
-                            [tmpETG_avg,~] = mtspectrumc(dataTargetOnset_avg,params);
-
-                            
-                            psdBL_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEBL_avg);
-                            psdST_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEST_avg);
-                            psdTG_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpETG_avg);
-                            
-                            for iFreqRange=1:4
-                                powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange}));
-                                powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange}));
-                                powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange}));
-                            end
-                            
-                            % computing time-frequency spectrum by
-                            % multi-taper method (computed for both static
-%                             % and counterphase stimuli)
-%                             [tmpEST_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.stimOnset(goodPos_stimOnset,:),1)',movingwin,params);
-%                             [tmpETG_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.targetOnset(goodPos_targetOnset,:),1)',movingwin,params);
-%                             
-%                             
-%                             timeVals_tf= tmpT_tf + timeVals(1);
-%                             energyST_tf_trialAvg = conv2Log(tmpEST_tf_trialAvg)';
-%                             energyTG_tf_trialAvg = conv2Log(tmpETG_tf_trialAvg)';
-%                             energyBL_tf_trialAvg = mean(energyST_tf_trialAvg(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
-%                             
-%                             mEnergyST_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf_trialAvg;
-%                             mEnergyTG_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf_trialAvg;
-%                             mEnergyBL_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf_trialAvg,1,length(timeVals_tf));
-                            
-                        end
-                    end
-                end
-            end
-        end
-    end
-    
-    % saving data for different Ref Schemes in cell elements
-    erpST{iRef} = erpStim;
-    erpTG{iRef} = erpTarget;
-    rms_erpBL{iRef} = RMSValsBL;
-    rms_erpST{iRef} = RMSValsERP_Stim;
-    rms_erpTG{iRef} = RMSValsERP_Target;
-    
-    fftBL_all{iRef} = fftBL;
-    fftST_all{iRef} = fftST;
-    fftTG_all{iRef} = fftTG;
-
-    psdBL_all{iRef} = psdBL; psdBL_trialAvg_all{iRef} = psdBL_trialAvg;
-    psdST_all{iRef} = psdST; psdST_trialAvg_all{iRef} = psdST_trialAvg;
-    psdTG_all{iRef} = psdTG; psdTG_trialAvg_all{iRef} = psdTG_trialAvg;
-    powerValsBL_all{iRef} = powerValsBL; powerValsBL_trialAvg_all{iRef} = powerValsBL_trialAvg;
-    powerValsST_all{iRef} = powerValsST; powerValsST_trialAvg_all{iRef} = powerValsST_trialAvg;
-    powerValsTG_all{iRef} = powerValsTG; powerValsTG_trialAvg_all{iRef} = powerValsTG_trialAvg;
-
-%     tfDataBL_all{iRef} = mEnergyBL_tf; tfDataBL_trialAvg_all{iRef} = mEnergyBL_tf_trialAvg;
-%     tfDataST_all{iRef} = mEnergyST_tf; tfDataST_trialAvg_all{iRef} = mEnergyST_tf_trialAvg;
-%     tfDataTG_all{iRef} = mEnergyTG_tf; tfDataTG_trialAvg_all{iRef} = mEnergyTG_tf_trialAvg;
-
-end
-
-% Structuring data for all data
-erpData.dataST = erpST;
-erpData.dataTG = erpTG;
-erpData.analysisData_BL = rms_erpBL;
-erpData.analysisData_ST = rms_erpST;
-erpData.analysisData_TG = rms_erpTG;
-erpData.timeVals = timeVals;
-erpData.trialNum = trialNums;
-
-fftData.dataBL = fftBL_all;
-fftData.dataST = fftST_all;
-fftData.dataTG = fftTG_all;
-fftData.freqVals = freqVals_fft;
-fftData.trialNum = trialNums;
-
-energyData.dataBL = psdBL_all;
-energyData.dataST = psdST_all;
-energyData.dataTG = psdTG_all;
-energyData.dataBL_trialAvg = psdBL_trialAvg_all;
-energyData.dataST_trialAvg = psdST_trialAvg_all;
-energyData.dataTG_trialAvg = psdTG_trialAvg_all;
-energyData.analysisDataBL = powerValsBL_all;
-energyData.analysisDataST = powerValsST_all;
-energyData.analysisDataTG = powerValsTG_all;
-energyData.analysisDataBL_trialAvg = powerValsBL_trialAvg_all;
-energyData.analysisDataST_trialAvg = powerValsST_trialAvg_all;
-energyData.analysisDataTG_trialAvg = powerValsTG_trialAvg_all;
-energyData.freqVals = freqVals;
-energyData.trialNum = trialNums;
-
-% Time-Frequency data
-% energyDataTF.dataST = tfDataST_all;
-% energyDataTF.dataBL = tfDataBL_all;
-% energyDataTF.dataTG = tfDataTG_all;
-% energyDataTF.dataST_trialAvg = tfDataST_trialAvg_all;
-% energyDataTF.dataBL_trialAvg = tfDataBL_trialAvg_all;
-% energyDataTF.dataTG_trialAvg = tfDataTG_trialAvg_all;
-% energyDataTF.timeVals = timeVals_tf;
-% energyDataTF.freqVals = freqVals_tf;
-% energyDataTF.trialNum = trialNums;
-
+function [full_data] = getData_SRCLongProtocols(protocolType,gridType)
+    capType = 'actiCap64';  
+    full_data = get_data_for_all_subjects(protocolType, gridType, capType);
 end
 
 % Accessory Functions
@@ -316,25 +10,23 @@ end
 
 % Load LFP Info
 function [analogChannelsStored,timeVals,goodStimPos,analogInputNums] = loadlfpInfo(folderLFP) %#ok<*STOUT>
-load(fullfile(folderLFP,'lfpInfo.mat'));
-analogChannelsStored=sort(analogChannelsStored); %#ok<NODEF>
-if ~exist('analogInputNums','var')
-    analogInputNums=[];
+    load(fullfile(folderLFP,'lfpInfo.mat'));
+    analogChannelsStored=sort(analogChannelsStored); %#ok<NODEF>
+    if ~exist('analogInputNums','var')
+        analogInputNums=[];
+    end
 end
-end
-
 
 % Get parameter combinations
 function [parameterCombinations,cValsUnique,tValsUnique,eValsUnique,...
     aValsUnique,sValsUnique] = ...
     loadParameterCombinations(folderExtract)
-
-load(fullfile(folderExtract,'parameterCombinations.mat')); %#ok<*LOAD>
+    load(fullfile(folderExtract,'parameterCombinations.mat')); %#ok<*LOAD>
 end
 
 % Get Bad Trials
 function [badTrials,badElecs] = loadBadTrials(badTrialFile) %#ok<*STOUT>
-load(badTrialFile);
+    load(badTrialFile);
 end
 
 % Get Induced LFP data by subtracting trialaveraged ERP data from trialwise LFP Data
@@ -344,7 +36,305 @@ end
 
 % Get MeanEnergy for different frequency bands
 function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange)
-
-posToAverage = intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2)));
-eValue   = sum(mEnergy(posToAverage));
+    posToAverage = intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2)));
+    eValue   = sum(mEnergy(posToAverage));
 end
+
+function [computed] = get_data_for_all_subjects(protocolType, gridType, cap_type)    
+    [subjects, expDates, protocolNames, dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType, protocolType);
+    grid_type = 'EEG';
+    computed = cell(length(subjects),4);
+    for subject_idx = 1: length(subjects)
+        tic
+        subject = num2str(subjects{subject_idx});
+        exp_date = num2str(expDates{subject_idx});
+        protocol = num2str(protocolNames{subject_idx});
+        disp(['SUBJECT: ' subject ', EXPDATE:' exp_date, ', PROTOCOL:' protocol])
+        clear badTrials badElectrodes
+        folderName = fullfile(dataFolderSourceString, 'data', subject, grid_type, exp_date, protocol);
+        folderExtract = fullfile(folderName, 'extractedData');
+        folderSegment = fullfile(folderName, 'segmentedData');
+        folderLFP = fullfile(folderSegment, 'LFP');
+
+        % Set up movingWindow parameters for time-frequency plot
+        winSize = 0.1;
+        winStep = 0.025;
+        movingwin = [winSize winStep];
+
+        % Electrode and trial related Information
+        photoDiodeChannels = [65 66];
+        
+        % Get Parameter Combinations for SRC-Long Protocols
+        [parameterCombinations,cValsUnique,tValsUnique,eValsUnique,aValsUnique,sValsUnique]= ...
+            loadParameterCombinations(folderExtract); %#ok<ASGLU>
+
+        %trials
+        trials = parameterCombinations.stimOnset;
+
+        % Get bad trials
+        badTrialFile = fullfile(folderSegment, 'badTrials_v5.mat');
+        if ~exist(badTrialFile, 'file')
+            disp('Bad trial file does not exist...');
+            bad_trials = [];
+        else
+            [bad_trials, ~] = loadBadTrials(badTrialFile);            
+            % disp([num2str(length(bad_trials)) ' bad trials']);
+        end
+        
+        unipolar_bad_electrodes = get_bad_electrodes(cap_type, 'unipolar', folderSegment);
+        bipolar_bad_electrodes = get_bad_electrodes(cap_type, 'bipolar', folderSegment);
+        unipolar_data = get_data_for_one_subject(cap_type, 'unipolar', eValsUnique, folderLFP, trials, bad_trials);
+        bipolar_data = get_data_for_one_subject(cap_type, 'bipolar', eValsUnique, folderLFP, trials, bad_trials);
+
+        computed{subject_idx, 1} = unipolar_bad_electrodes;
+        computed{subject_idx, 2} = unipolar_data;
+        computed{subject_idx, 3} = bipolar_bad_electrodes;
+        computed{subject_idx, 4} = bipolar_data;
+        toc
+    end    
+end
+
+function [badElecs, badHighPriorityElecs] = get_bad_electrodes(cap_type, ref_type, folderSegment)
+    highPriorityElectrodeNums = getHighPriorityElectrodes(cap_type);
+
+    badTrialFile = fullfile(folderSegment, 'badTrials_v5.mat');
+    if ~exist(badTrialFile, 'file')
+        disp('Bad trial file does not exist...');
+        badElectrodes = [];
+    else
+        [~, badElectrodes] = loadBadTrials(badTrialFile);            
+        % disp([num2str(length(badElectrodes)) ' bad electrodes']);
+    end
+
+    badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]); % TODO: correct last variable
+    
+    % load LFP Info
+    folderLFP = fullfile(folderSegment,'LFP');
+    [analogChannelsStored,~,~,~] = loadlfpInfo(folderLFP);
+
+    if strcmp(ref_type, 'unipolar')
+        badHighPriorityElecs = intersect(highPriorityElectrodeNums, badElecsAll);
+        badElecs = intersect(analogChannelsStored, badElecsAll);
+        % disp(['Unipolar, all bad elecs: ' num2str(length(badElecsAll)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityElectrodeNums,badElecsAll))) ]);            
+    elseif strcmp(ref_type, 'bipolar')
+        count =1; badBipolarElecs = [];
+        electrodes = getElectrodeList(cap_type, ref_type, 1);
+        for iBipolarElec = 1:length(electrodes)
+            if any(electrodes{iBipolarElec}{1}(1) == badElecsAll) || any(electrodes{iBipolarElec}{1}(2) == badElecsAll)
+                badBipolarElecs(count) = iBipolarElec;
+                count = count+1;
+            end
+        end
+        
+        if ~exist('badBipolarElecs', 'var')
+            badBipolarElecs = [];
+        end
+        
+        badElecs = badBipolarElecs;
+        highPriorityBipolarElectrodeNums = [93 94 101 102 96 97 111 107 112]; % TODO: will be moved later
+        badHighPriorityElecs = intersect(highPriorityBipolarElectrodeNums, badBipolarElecs);
+        % disp(['Bipolar, all bad elecs: ' num2str(length(badBipolarElecs)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityBipolarElectrodeNums, badBipolarElecs))) ]);
+    end
+end
+
+function [computed] = get_data_for_one_subject(cap_type, ref_type, eValsUnique, folderLFP, trials, bad_trials)
+    electrodes = getElectrodeList(cap_type, ref_type, 1);
+    computed = cell(1,length(electrodes));
+
+    % load LFP Info
+    [~, timeVals, ~, ~] = loadlfpInfo(folderLFP);
+    Fs = round(1/(timeVals(2)-timeVals(1)));
+
+    for elec_idx = 1: length(electrodes)
+        if strcmp(ref_type, 'unipolar')
+            x = load(fullfile(folderLFP,['elec' num2str(electrodes{elec_idx}{1}) '.mat']));
+        elseif strcmp(ref_type, 'bipolar')
+            x1 = load(fullfile(folderLFP,['elec' num2str(electrodes{elec_idx}{1}(1)) '.mat']));
+            x2 = load(fullfile(folderLFP,['elec' num2str(electrodes{elec_idx}{1}(2)) '.mat']));
+            x.analogData.stimOnset = x1.analogData.stimOnset-x2.analogData.stimOnset;
+            x.analogData.targetOnset = x1.analogData.targetOnset-x2.analogData.targetOnset;
+        end
+        computed{elec_idx} = get_good_trials_for_all_eot_codes(eValsUnique, x.analogData, timeVals, trials, bad_trials);
+    end
+end
+
+function [computed] = get_good_trials_for_all_eot_codes(eot_codes, analog_data, timeVals, trials, bad_trials)
+    computed = cell(1,length(eot_codes));
+    attend_locs = [0 1];
+    for eot_code_idx = 1: length(eot_codes)
+        computed{eot_code_idx} = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials(:,:,eot_code_idx,:), bad_trials);
+    end
+end
+
+function [computed] = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials, bad_trials)
+    computed = cell(1,length(attend_locs));
+    tf = [0 1 2];
+    for attend_loc_idx = 1: length(attend_locs)
+        computed{attend_loc_idx} = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials(:,:, attend_loc_idx), bad_trials);
+    end
+end
+
+function [computed] = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials, bad_trials)
+    computed = cell(length(tf),2);
+
+    keySet = {'Baseline', 'Stimulus', 'Pre_Target'};
+    valueSet = {[-1.000 0], [0.250 1.250], [-1.000 0]};
+    t_map = containers.Map(keySet,valueSet);
+
+    % Set up params for MT
+    params.tapers   = [1 1];
+    params.pad      = -1;
+    params.Fs       = 1000;
+    params.fpass    = [0 250];
+    params.trialave = 1;
+
+    freqRanges{1} = [8 12]; % alpha
+    freqRanges{2} = [20 66]; % gamma
+    freqRanges{3} = [23 23];  % SSVEP Left Stim
+    freqRanges{4} = [31 31];  % SSVEP Right Stim
+    numFreqs = length(freqRanges); %#ok<*NASGU>
+
+    for tf_idx = 1: length(tf)
+        good_trial = get_good_trials(trials(:,tf_idx), bad_trials);
+        computed{tf_idx, 1} = good_trial;
+        computed{tf_idx, 2} = get_PSD_for_all_time_periods(t_map, analog_data, timeVals, good_trial, params, freqRanges);
+    end
+end
+
+function [good_trials] = get_good_trials(trials_cell, bad_trials)
+    trials = cell2mat(trials_cell);
+    good_trials = setdiff(trials, bad_trials);
+    % disp(good_trials);
+end
+
+function get_ERP(data,timeVals,good_trial,timePeriods)
+    erpRange = timingParameters.erpRange;
+    erpRangePos = round(diff(erpRange)*Fs);
+    erpPos = find(timeVals>=timingParameters.erpRange(1),1)+ (1:erpRangePos);  
+    
+    % erp
+    erp_stimOnset = mean(x.analogData.stimOnset(goodPos_stimOnset,:),1);
+    erp_targetOnset = mean(x.analogData.targetOnset(goodPos_targetOnset,:),1);
+    % Baseline Correction
+    erp_stimOnset = erp_stimOnset - repmat(mean(erp_stimOnset(:,blPos),2),1,size(erp_stimOnset,2));
+    erp_targetOnset = erp_targetOnset - repmat(mean(erp_targetOnset(:,blPos),2),1,size(erp_targetOnset,2));
+    
+    erpStim(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = erp_stimOnset;
+    erpTarget(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = erp_targetOnset;
+    RMSValsBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_stimOnset(blPos));
+    RMSValsERP_Stim(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_stimOnset(erpPos));
+    RMSValsERP_Target(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_targetOnset(erpPos));
+end
+
+function get_fft(data,timeVals,good_trial,params,time_periods,freqRanges)
+    % fft
+    fftBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,blPos),[],2))))); %#ok<*NASGU,*AGROW>
+    fftST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,stPos),[],2)))));
+    fftTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.targetOnset(goodPos_targetOnset,tgPos),[],2)))));
+    freqVals_fft = 0:1/diff(range):Fs-1/diff(range);
+end
+
+function [psd_data] = get_PSD_for_all_time_periods(t_map, analog_data, timeVals, good_trial, params, freq_ranges)
+    if diff(t_map('Baseline')) ~= diff(t_map('Stimulus'))
+        error('baseline and stimulus ranges are not of equal duration');
+    elseif diff(t_map('Stimulus')) ~= diff(t_map('Pre_Target'))
+        error('Pre_Target and baseline/stimulus ranges are not of equal duration');
+    end
+
+    psd_data = struct();
+
+    t_periods = keys(t_map);
+    Fs = 1000;
+    for key_idx = 1: length(t_map) 
+        clear data
+        k = t_periods{key_idx};
+        range = t_map(k);
+        rangePos = round(diff(range)*Fs);
+
+        time_pos = find(timeVals>=range(1),1)+ (1:rangePos);
+
+        % Segmenting data according to timePos
+        if strcmp(k, 'Baseline') || strcmp(k, 'Stimulus')
+            data = analog_data.stimOnset(good_trial,time_pos)';
+        elseif strcmp(k, 'Pre_Target')
+            data = analog_data.targetOnset(good_trial,time_pos)';
+        end
+        [raw_PSD, freqVals] = mtspectrumc(data, params);
+        power = get_power(raw_PSD, freqVals, freq_ranges);
+
+        computed = struct();
+
+        computed.raw_psd = raw_PSD;
+        computed.freqs = freqVals;
+        computed.power = power;
+
+        psd_data.(k) = computed;
+    end
+end
+
+function [powers] = get_power(raw_PSD, freqVals, freq_ranges)
+    for iFreqRange=1:4
+        powers{iFreqRange} = getMeanEnergyForAnalysis(raw_PSD, freqVals, freq_ranges{iFreqRange});
+    end
+end
+
+function get_PSD_trialavg()
+    % Segmenting data according to timePos
+    dataBL_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,blPos),1)';
+    dataStimOnset_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,stPos),1)';
+    dataTargetOnset_avg = mean(x.analogData.targetOnset(goodPos_targetOnset,tgPos),1)';
+                            
+    % power spectral density estimation
+    [tmpEBL_avg,~] = mtspectrumc(dataBL_avg,params);
+    [tmpEST_avg,~] = mtspectrumc(dataStimOnset_avg,params);
+    [tmpETG_avg,~] = mtspectrumc(dataTargetOnset_avg,params);
+
+    
+    psdBL_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEBL_avg);
+    psdST_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpEST_avg);
+    psdTG_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = conv2Log(tmpETG_avg);
+                            
+    for iFreqRange=1:4
+        powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange}));
+        powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange}));
+        powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = conv2Log(getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange}));
+    end
+end
+
+function get_TF()
+    % computing time-frequency spectrum by
+    % multi-taper method (computed for both static
+    % and counterphase stimuli)
+     [tmpEST_tf,tmpT_tf,freqVals_tf] = mtspecgramc(x.analogData.stimOnset(goodPos_stimOnset,:)',movingwin,params);
+     [tmpETG_tf,~,~] = mtspecgramc(x.analogData.targetOnset(goodPos_targetOnset,:)',movingwin,params);
+     
+     
+     timeVals_tf= tmpT_tf + timeVals(1);
+     energyST_tf = conv2Log(tmpEST_tf)';
+     energyTG_tf = conv2Log(tmpETG_tf)';
+     energyBL_tf = mean(energyST_tf(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
+     
+     mEnergyST_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf;
+     mEnergyTG_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf;
+     mEnergyBL_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf,1,length(timeVals_tf));
+end
+
+function get_TF_trialavg()
+    % computing time-frequency spectrum by
+    % multi-taper method (computed for both static
+    % and counterphase stimuli)
+    [tmpEST_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.stimOnset(goodPos_stimOnset,:),1)',movingwin,params);
+    [tmpETG_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.targetOnset(goodPos_targetOnset,:),1)',movingwin,params);
+    
+    
+    timeVals_tf= tmpT_tf + timeVals(1);
+    energyST_tf_trialAvg = conv2Log(tmpEST_tf_trialAvg)';
+    energyTG_tf_trialAvg = conv2Log(tmpETG_tf_trialAvg)';
+    energyBL_tf_trialAvg = mean(energyST_tf_trialAvg(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
+    
+    mEnergyST_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf_trialAvg;
+    mEnergyTG_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf_trialAvg;
+    mEnergyBL_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf_trialAvg,1,length(timeVals_tf));
+
+end
+
