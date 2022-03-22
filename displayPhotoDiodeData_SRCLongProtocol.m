@@ -1,5 +1,5 @@
 function displayPhotoDiodeData_SRCLongProtocol(protocolType,analysisTypeFlag,analysisMethodFlag,SubjectNum,AttendLoc)
-close all;
+% close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='EEG';      end
 
@@ -23,7 +23,7 @@ else
     save(fileName,'erpData','fftData','energyData')
 end
 
-hFig = figure(2);
+hFig = figure(AttendLoc);
 set(hFig,'units','normalized','outerposition',[0 0 1 1])
 hPlotsFig.hPlot1 = getPlotHandles(3,2,[0.06 0.65 0.3 0.3],0.01,0.01,1); linkaxes(hPlotsFig.hPlot1)
 hPlotsFig.hPlot2 = getPlotHandles(3,2,[0.06 0.08 0.3 0.5],0.01,0.01,1);linkaxes(hPlotsFig.hPlot2)
@@ -109,9 +109,9 @@ rescaleData(hPlotsFig.hPlot4,0,100,[-5 5],12);
 % rescaleData(hPlotsFig.hPlot5,0,6,[-2 2],12);
 % rescaleData(hPlotsFig.hPlot6,0,6,[-2 2],12);
 
-figName = fullfile(folderSourceString,[protocolType '_PhotoDiodeResults_Subject_' num2str(SubjectNum) '_analysisType',num2str(analysisTypeFlag) '_analysisMethod',num2str(analysisMethodFlag) '_tapers_' , num2str(tapers(2))]);
-saveas(hFig,[figName '.fig'])
-print(hFig,[figName '.tif'],'-dtiff','-r600')
+% figName = fullfile(folderSourceString,[protocolType '_PhotoDiodeResults_Subject_' num2str(SubjectNum) '_analysisType',num2str(analysisTypeFlag) '_analysisMethod',num2str(analysisMethodFlag) '_tapers_' , num2str(tapers(2))]);
+% saveas(hFig,[figName '.fig'])
+% print(hFig,[figName '.tif'],'-dtiff','-r600')
 end
 
 function [erpData,fftData,energyData] = getDataPhotoDiodes_SRCLongProtocols(protocolType,gridType,timingParameters,tapers,freqRanges)

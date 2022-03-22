@@ -81,4 +81,33 @@ clear index; index=64; deviceNames{index} = 'BP'; subjectNames{index} = 'AD'; ex
 clear index; index=65; deviceNames{index} = 'BP'; subjectNames{index} = 'AD'; expDates{index} = '071021'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
 clear index; index=66; deviceNames{index} = 'BP'; subjectNames{index} = 'AD'; expDates{index} = '071021'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
 
+clear index; index=67; deviceNames{index} = 'BP'; subjectNames{index} = 'AB'; expDates{index} = '111021'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=68; deviceNames{index} = 'BP'; subjectNames{index} = 'AB'; expDates{index} = '111021'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=69; deviceNames{index} = 'BP'; subjectNames{index} = 'AB'; expDates{index} = '111021'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=70; deviceNames{index} = 'BP'; subjectNames{index} = 'AB'; expDates{index} = '111021'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
+clear index; index=71; deviceNames{index} = 'BP'; subjectNames{index} = 'SW'; expDates{index} = '120122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=72; deviceNames{index} = 'BP'; subjectNames{index} = 'SW'; expDates{index} = '120122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=73; deviceNames{index} = 'BP'; subjectNames{index} = 'SW'; expDates{index} = '120122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=74; deviceNames{index} = 'BP'; subjectNames{index} = 'SW'; expDates{index} = '120122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
+clear index; index=75; deviceNames{index} = 'BP'; subjectNames{index} = 'AR'; expDates{index} = '190122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=76; deviceNames{index} = 'BP'; subjectNames{index} = 'AR'; expDates{index} = '190122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=77; deviceNames{index} = 'BP'; subjectNames{index} = 'AR'; expDates{index} = '190122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=78; deviceNames{index} = 'BP'; subjectNames{index} = 'AR'; expDates{index} = '190122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
+clear index; index=75; deviceNames{index} = 'BP'; subjectNames{index} = 'SN'; expDates{index} = '210122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=76; deviceNames{index} = 'BP'; subjectNames{index} = 'SN'; expDates{index} = '210122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=77; deviceNames{index} = 'BP'; subjectNames{index} = 'SN'; expDates{index} = '210122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=78; deviceNames{index} = 'BP'; subjectNames{index} = 'SN'; expDates{index} = '210122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
+clear index; index=79; deviceNames{index} = 'BP'; subjectNames{index} = 'DP'; expDates{index} = '220122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=80; deviceNames{index} = 'BP'; subjectNames{index} = 'DP'; expDates{index} = '220122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=81; deviceNames{index} = 'BP'; subjectNames{index} = 'DP'; expDates{index} = '220122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI- 6 Blocks; stopped due to poor EyeTracking and Fixation
+
+clear index; index=82; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=83; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=84; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=85; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
 end

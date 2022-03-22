@@ -13,16 +13,16 @@ timingParamters.erpRange = [0 0.250];
 
 freqRanges{1} = [8 12]; % alpha
 freqRanges{2} = [20 66]; % gamma
-freqRanges{3} = [23 23];  % SSVEP Left Stim
-freqRanges{4} = [31 31];  % SSVEP Right Stim
+freqRanges{3} = [24 24];  % SSVEP Left Stim
+freqRanges{4} = [32 32];  % SSVEP Right Stim
 numFreqs = length(freqRanges); %#ok<*NASGU>
 
-fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) 'new.mat']);
+fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) '.mat']);
 if exist(fileName, 'file')
     load(fileName) %#ok<*LOAD>
 else
     [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols(protocolType,gridType,timingParamters,tapers,freqRanges);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers,freqRanges);
     save(fileName,'erpData','fftData','energyData','badHighPriorityElecs','badElecs')
 end
 
@@ -45,17 +45,19 @@ elecList_Bipolar_Right = [96 97 102];
 elecList_Left{1} = elecList_Unipolar_Left; elecList_Left{2} = elecList_Bipolar_Left;
 elecList_Right{1} = elecList_Unipolar_Right; elecList_Right{2} = elecList_Bipolar_Right;
 
-if analysisMethodFlag
+if analysisMethodFlag % Replacing the PSD and power Values for Flickering conditions when MT is computed on mean signal! 
     
-    clear energyData.dataBL energyData.dataST energyData.dataTG
-    clear energyData.analysisDataBL energyData.analysisDataST energyData.analysisDataTG
-    energyData.dataBL = energyData.dataBL_trialAvg;
-    energyData.dataST = energyData.dataST_trialAvg;
-    energyData.dataTG = energyData.dataTG_trialAvg;
-    
-    energyData.analysisDataBL = energyData.analysisDataBL_trialAvg;
-    energyData.analysisDataST = energyData.analysisDataST_trialAvg;
-    energyData.analysisDataBL = energyData.analysisDataTG_trialAvg;
+    %     clear energyData.dataBL energyData.dataST energyData.dataTG
+    %     clear energyData.analysisDataBL energyData.analysisDataST energyData.analysisDataTG
+    for iRef = 1:2
+        energyData.dataBL{iRef}(:,:,:,:,2:3,:) = energyData.dataBL_trialAvg{iRef}(:,:,:,:,2:3,:);
+        energyData.dataST{iRef}(:,:,:,:,2:3,:) = energyData.dataST_trialAvg{iRef}(:,:,:,:,2:3,:);
+        energyData.dataTG{iRef}(:,:,:,:,2:3,:) = energyData.dataTG_trialAvg{iRef}(:,:,:,:,2:3,:);
+        
+        energyData.analysisDataBL{iRef}(1,3:4) = energyData.analysisDataBL_trialAvg{iRef}(1,3:4);
+        energyData.analysisDataST{iRef}(1,3:4) = energyData.analysisDataST_trialAvg{iRef}(1,3:4);
+        energyData.analysisDataTG{iRef}(1,3:4) = energyData.analysisDataTG_trialAvg{iRef}(1,3:4);
+    end
     
 end
 
@@ -76,7 +78,6 @@ commonPSDBL = cell(1,2);
 
 contralateralPowerValsBL = cell(1,2); contralateralPowerValsST = cell(1,2); contralateralPowerValsTG = cell(1,2);
 ipsilateralPowerValsBL = cell(1,2); ipsilateralPowerValsST = cell(1,2); ipsilateralPowerValsTG = cell(1,2);
-
 
 for iRef =1:2
     contralateralERP_ST{iRef} = cat(2,erpData.dataST{iRef}(:,elecList_Left{iRef},:,1,:,:),erpData.dataST{iRef}(:,elecList_Right{iRef},:,2,:,:));
@@ -122,14 +123,19 @@ for iRef =1:2
     end
 end
 
+timeVals =  erpData.timeVals;
+freqVals = energyData.freqVals;
+clear erpData fftData energyData
+
+
 
 hFig = figure(1);
 set(hFig,'units','normalized','outerposition',[0 0 1 1])
 hPlotsFig.hPlot1 = getPlotHandles(3,2,[0.06 0.62 0.3 0.3],0.01,0.01,1); %linkaxes(hPlotsFig.hPlot1)
-hPlotsFig.hPlot2 = getPlotHandles(3,2,[0.06 0.08 0.3 0.45],0.01,0.01,1);%linkaxes(hPlotsFig.hPlot2)
+hPlotsFig.hPlot2 = getPlotHandles(3,2,[0.06 0.08 0.3 0.45],0.01,0.01,1);% linkaxes(hPlotsFig.hPlot2)
 
 hPlotsFig.hPlot3 = getPlotHandles(3,2,[0.4 0.62 0.3 0.3],0.01,0.01,1); %linkaxes(hPlotsFig.hPlot3)
-hPlotsFig.hPlot4 = getPlotHandles(3,2,[0.4 0.08 0.3 0.45],0.01,0.01,1);%linkaxes(hPlotsFig.hPlot4)
+hPlotsFig.hPlot4 = getPlotHandles(3,2,[0.4 0.08 0.3 0.45],0.01,0.01,1);% linkaxes(hPlotsFig.hPlot4)
 
 hPlotsFig.hPlot5 = getPlotHandles(3,2,[0.75 0.62 0.2 0.35],0.01,0.01,1);linkaxes(hPlotsFig.hPlot5)
 hPlotsFig.hPlot6 = getPlotHandles(3,2,[0.75 0.14 0.2 0.35],0.01,0.01,1);linkaxes(hPlotsFig.hPlot6)
@@ -152,76 +158,76 @@ for iRef = 1:2
         rmsERP_ST_ipsi = squeeze(mean(ipsilateralRMSValsST{iRef}(subjectIdx,:,eotCodeIdx,1,iTF),2));
         rmsERP_TG_ipsi = squeeze(mean(ipsilateralRMSValsTG{iRef}(subjectIdx,:,eotCodeIdx,1,iTF),2));
         
-        psdBL_con = squeeze(mean(mean(contralateralPSDBL{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
-        psdBL_ipsi = squeeze(mean(mean(ipsilateralPSDBL{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
+        psdBL_con = squeeze(mean(log10(mean(contralateralPSDBL{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
+        psdBL_ipsi = squeeze(mean(log10(mean(ipsilateralPSDBL{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
         
-        psdST_con = squeeze(mean(mean(contralateralPSDST{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
-        psdST_ipsi = squeeze(mean(mean(ipsilateralPSDST{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
+        psdST_con = squeeze(mean(log10(mean(contralateralPSDST{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
+        psdST_ipsi = squeeze(mean(log10(mean(ipsilateralPSDST{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
         
-        psdTG_con = squeeze(mean(mean(contralateralPSDTG{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
-        psdTG_ipsi = squeeze(mean(mean(ipsilateralPSDTG{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2),1));
+        psdTG_con = squeeze(mean(log10(mean(contralateralPSDTG{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
+        psdTG_ipsi = squeeze(mean(log10(mean(ipsilateralPSDTG{iRef}(subjectIdx,:,eotCodeIdx,1,iTF,:),2)),1));
         
         if iRef == 1
-            plot(hPlotsFig.hPlot1(iTF,1),erpData.timeVals,erpST_con,'color',attendColors{1}); hold(hPlotsFig.hPlot1(iTF,1),'on')
-            plot(hPlotsFig.hPlot1(iTF,1),erpData.timeVals,erpST_ipsi,'color',attendColors{2})
-            plot(hPlotsFig.hPlot1(iTF,2),erpData.timeVals,erpTG_con,'color',attendColors{1}); hold(hPlotsFig.hPlot1(iTF,2),'on')
-            plot(hPlotsFig.hPlot1(iTF,2),erpData.timeVals,erpTG_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot1(iTF,1),timeVals,erpST_con,'color',attendColors{1}); hold(hPlotsFig.hPlot1(iTF,1),'on')
+            plot(hPlotsFig.hPlot1(iTF,1),timeVals,erpST_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot1(iTF,2),timeVals,erpTG_con,'color',attendColors{1}); hold(hPlotsFig.hPlot1(iTF,2),'on')
+            plot(hPlotsFig.hPlot1(iTF,2),timeVals,erpTG_ipsi,'color',attendColors{2})
             
             if plotPSDFlag
-            plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdBL_con,'color','k','LineStyle','--','DisplayNAme','BL-contra'); hold(hPlotsFig.hPlot2(iTF,1),'on')
-            plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdBL_ipsi,'color','k','DisplayNAme','BL-ipsi')
-            plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdST_con,'color',attendColors{1},'DisplayNAme','Attend-contra')
-            plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdST_ipsi,'color',attendColors{2},'DisplayNAme','Attend-ipsi')
+            plot(hPlotsFig.hPlot2(iTF,1),freqVals,psdBL_con,'color','k','LineStyle','--','DisplayNAme','BL-contra'); hold(hPlotsFig.hPlot2(iTF,1),'on')
+            plot(hPlotsFig.hPlot2(iTF,1),freqVals,psdBL_ipsi,'color','k','DisplayNAme','BL-ipsi')
+            plot(hPlotsFig.hPlot2(iTF,1),freqVals,psdST_con,'color',attendColors{1},'DisplayNAme','Attend-contra')
+            plot(hPlotsFig.hPlot2(iTF,1),freqVals,psdST_ipsi,'color',attendColors{2},'DisplayNAme','Attend-ipsi')
             end
             
             if plotDeltaPSDFlag
-                plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,1),'on')
-                plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,10*(psdST_con-psdST_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
+                plot(hPlotsFig.hPlot2(iTF,1),freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,1),'on')
+                plot(hPlotsFig.hPlot2(iTF,1),freqVals,10*(psdST_con-psdST_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
             end
             
             
             if plotPSDFlag
-            plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdBL_con,'color','k'); hold(hPlotsFig.hPlot2(iTF,2),'on')
-            plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdBL_ipsi,'color','k')
-            plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdTG_con,'color',attendColors{1})
-            plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdTG_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot2(iTF,2),freqVals,psdBL_con,'color','k'); hold(hPlotsFig.hPlot2(iTF,2),'on')
+            plot(hPlotsFig.hPlot2(iTF,2),freqVals,psdBL_ipsi,'color','k')
+            plot(hPlotsFig.hPlot2(iTF,2),freqVals,psdTG_con,'color',attendColors{1})
+            plot(hPlotsFig.hPlot2(iTF,2),freqVals,psdTG_ipsi,'color',attendColors{2})
             end
             
             if plotDeltaPSDFlag
-                plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,2),'on')
-                plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,10*(psdTG_con-psdTG_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
+                plot(hPlotsFig.hPlot2(iTF,2),freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,2),'on')
+                plot(hPlotsFig.hPlot2(iTF,2),freqVals,10*(psdTG_con-psdTG_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
             end
             
         elseif iRef==2
             
-            plot(hPlotsFig.hPlot3(iTF,1),erpData.timeVals,erpST_con,'color',attendColors{1}); hold(hPlotsFig.hPlot3(iTF,1),'on')
-            plot(hPlotsFig.hPlot3(iTF,1),erpData.timeVals,erpST_ipsi,'color',attendColors{2})
-            plot(hPlotsFig.hPlot3(iTF,2),erpData.timeVals,erpTG_con,'color',attendColors{1}); hold(hPlotsFig.hPlot3(iTF,2),'on')
-            plot(hPlotsFig.hPlot3(iTF,2),erpData.timeVals,erpTG_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot3(iTF,1),timeVals,erpST_con,'color',attendColors{1}); hold(hPlotsFig.hPlot3(iTF,1),'on')
+            plot(hPlotsFig.hPlot3(iTF,1),timeVals,erpST_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot3(iTF,2),timeVals,erpTG_con,'color',attendColors{1}); hold(hPlotsFig.hPlot3(iTF,2),'on')
+            plot(hPlotsFig.hPlot3(iTF,2),timeVals,erpTG_ipsi,'color',attendColors{2})
             
             if plotPSDFlag
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdBL_con,'color','k','LineStyle','--','DisplayNAme','BL-contra'); hold(hPlotsFig.hPlot4(iTF,1),'on')
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdBL_ipsi,'color','k','DisplayNAme','BL-ipsi')
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdST_con,'color',attendColors{1},'DisplayNAme','Attend-contra')
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdST_ipsi,'color',attendColors{2},'DisplayNAme','Attend-ipsi')
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,psdBL_con,'color','k','LineStyle','--','DisplayNAme','BL-contra'); hold(hPlotsFig.hPlot4(iTF,1),'on')
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,psdBL_ipsi,'color','k','DisplayNAme','BL-ipsi')
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,psdST_con,'color',attendColors{1},'DisplayNAme','Attend-contra')
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,psdST_ipsi,'color',attendColors{2},'DisplayNAme','Attend-ipsi')
             end
             
                         
             if plotDeltaPSDFlag
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,1),'on')
-                plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,10*(psdST_con-psdST_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,1),'on')
+                plot(hPlotsFig.hPlot4(iTF,1),freqVals,10*(psdST_con-psdST_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
             end
             
             if plotPSDFlag
-            plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdBL_con,'color','k'); hold(hPlotsFig.hPlot4(iTF,2),'on')
-            plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdBL_ipsi,'color','k')
-            plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdTG_con,'color',attendColors{1})
-            plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdTG_ipsi,'color',attendColors{2})
+            plot(hPlotsFig.hPlot4(iTF,2),freqVals,psdBL_con,'color','k'); hold(hPlotsFig.hPlot4(iTF,2),'on')
+            plot(hPlotsFig.hPlot4(iTF,2),freqVals,psdBL_ipsi,'color','k')
+            plot(hPlotsFig.hPlot4(iTF,2),freqVals,psdTG_con,'color',attendColors{1})
+            plot(hPlotsFig.hPlot4(iTF,2),freqVals,psdTG_ipsi,'color',attendColors{2})
             end
             
             if plotDeltaPSDFlag
-                plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,2),'on')
-                plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,10*(psdTG_con-psdTG_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
+                plot(hPlotsFig.hPlot4(iTF,2),freqVals,10*(psdBL_ipsi-psdBL_ipsi),'color','k','DisplayNAme','BL');hold(hPlotsFig.hPlot2(iTF,2),'on')
+                plot(hPlotsFig.hPlot4(iTF,2),freqVals,10*(psdTG_con-psdTG_ipsi),'color',[0.8500 0.3250 0.0980],'LineWidth',1.5,'DisplayNAme','AttendContra-AttendIpsi');
             end
             
         end
@@ -242,13 +248,13 @@ for iRef = 1:2
         
         for iFreqRange = 1:4
             clear powerValsBL_con powerValsST_con powerValsTG_con powerValsBL_ipsi powerValsST_ipsi powerValsTG_ipsi
-            powerValsBL_con = squeeze(mean(contralateralPowerValsBL{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
-            powerValsST_con = squeeze(mean(contralateralPowerValsST{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
-            powerValsTG_con = squeeze(mean(contralateralPowerValsTG{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
+            powerValsBL_con = squeeze(log10(mean(contralateralPowerValsBL{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
+            powerValsST_con = squeeze(log10(mean(contralateralPowerValsST{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
+            powerValsTG_con = squeeze(log10(mean(contralateralPowerValsTG{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
             
-            powerValsBL_ipsi = squeeze(mean(ipsilateralPowerValsBL{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
-            powerValsST_ipsi = squeeze(mean(ipsilateralPowerValsST{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
-            powerValsTG_ipsi = squeeze(mean(ipsilateralPowerValsTG{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2));
+            powerValsBL_ipsi = squeeze(log10(mean(ipsilateralPowerValsBL{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
+            powerValsST_ipsi = squeeze(log10(mean(ipsilateralPowerValsST{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
+            powerValsTG_ipsi = squeeze(log10(mean(ipsilateralPowerValsTG{iRef}{iFreqRange}(subjectIdx,:,eotCodeIdx,1,iTF),2)));
             
             % mean and sem across subjects
             mPowerValsBL_con = mean(powerValsBL_con,1); semPowerValsBL_con = std(powerValsBL_con,[],1)./sqrt(size(powerValsBL_con,1));
@@ -310,36 +316,16 @@ for iRef = 1:2
     end
 end
 
-
-%     legend('BL-Attend Contra','BL-Attend Ipsi','Attend Contra', 'Attend Ipsi','parent',hPlotsFig.hPlot2,hPlotsFig.hPlot2(1,1))
+% legend
+% legend(hPlotsFig.hPlot2(1,1),'FontSize',8, 'Location','northeast','box','off','LineWidth',2);
+% legend('off');
+% legend('BL-Attend Contra','BL-Attend Ipsi','Attend Contra', 'Attend Ipsi','parent',hPlotsFig.hPlot2,hPlotsFig.hPlot2(1,1))
 
 % xlim(hPlotsFig.hPlot1(1,1),[-1.000 1.250]); ylim(hPlotsFig.hPlot1(1,1),[-10 5]);
 % xlim(hPlotsFig.hPlot3(1,1),[-1.000 0]);ylim(hPlotsFig.hPlot3(1,1),[-10 5]);
 % xlim(hPlotsFig.hPlot4(1,1),[0 100]);ylim(hPlotsFig.hPlot4(1,1),[-6 6]);
 % xlim(hPlotsFig.hPlot2(1,1),[0 100]);ylim(hPlotsFig.hPlot2(1,1),[-6 6]);
 % ylim(hPlotsFig.hPlot5(1,1),[-1 1]);ylim(hPlotsFig.hPlot6(1,1),[-1 1]);
-
-% For topoplots
-% cLimsTopo = [-1 3];
-% showMode = 'dots'; showElecs = [93 94 101 102 96 97 111 107 112];
-%
-% % Get the electrode list
-% clear cL bL chanlocs iElec electrodeList
-% switch refType
-%     case 'unipolar'
-%         cL = load(fullfile(pwd,'Montages','Layouts',capLayout{1},[capLayout{1} '.mat']));
-%         chanlocs = cL.chanlocs;
-%         for iElec = 1:length(chanlocs)
-%             electrodeList{iElec}{1} = iElec;
-%         end
-%     case 'bipolar'
-%         cL = load(fullfile(pwd,'Montages','Layouts',capLayout{1},['bipolarChanlocs' capLayout{1} '.mat']));
-%         bL = load(fullfile(pwd,'Montages','Layouts',capLayout{1},['bipChInfo' capLayout{1} '.mat']));
-%         chanlocs = cL.eloc;
-%         for iElec = 1:length(chanlocs)
-%             electrodeList{iElec}{1} = bL.bipolarLocs(iElec,:);
-%         end
-% end
 
 title(hPlotsFig.hPlot1(1,1),'Stim Onset');title(hPlotsFig.hPlot1(1,2),'Target Onset');
 title(hPlotsFig.hPlot3(1,1),'Stim Onset');title(hPlotsFig.hPlot3(1,2),'Target Onset');
@@ -357,7 +343,6 @@ if plotDeltaPSDFlag
 xlabel(hPlotsFig.hPlot2(3,1),'Frequency (Hz)'); ylabel(hPlotsFig.hPlot2(3,1),'Change in Power (dB)');
 xlabel(hPlotsFig.hPlot4(3,1),'Frequency (Hz)'); ylabel(hPlotsFig.hPlot4(3,1),'Change in Power (dB)');
 end
-% legend
 
 tickLengthPlot = 1.5*get(hPlotsFig.hPlot1(1,1),'TickLength');
 
@@ -380,33 +365,23 @@ set(hPlotsFig.hPlot6(3,1),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fon
 set(hPlotsFig.hPlot5(3,2),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',8);
 set(hPlotsFig.hPlot6(3,2),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',8);
 
-rescaleData(hPlotsFig.hPlot1(:,1),-1.000,1.250,[-10 5],12,0);
-rescaleData(hPlotsFig.hPlot1(:,2),-1.000,0,[-10 5],12,2);
-rescaleData(hPlotsFig.hPlot3(:,1),-1.000,1.250,[-10 5],12,0);
-rescaleData(hPlotsFig.hPlot3(:,2),-1.000,0,[-10 5],12,2);
+rescaleData(hPlotsFig.hPlot1(:,1),-1.000,1.250,[-15 10],12,0);
+rescaleData(hPlotsFig.hPlot1(:,2),-1.000,0.800,[-15 10],12,2);
+rescaleData(hPlotsFig.hPlot3(:,1),-1.000,1.250,[-15 10],12,0);
+rescaleData(hPlotsFig.hPlot3(:,2),-1.000,0.800,[-15 10],12,2);
 rescaleData(hPlotsFig.hPlot2,0,100,[-5 5],12,0);
 rescaleData(hPlotsFig.hPlot4,0,100,[-5 5],12,0);
 rescaleData(hPlotsFig.hPlot5,0,6,[-2 3],12,0);
 rescaleData(hPlotsFig.hPlot6,0,6,[-2 3],12,0);
 
-% 
-% legend(hPlotsFig.hPlot2(1,1),'FontSize',8, 'Location','northeast','box','off','LineWidth',2);
-% legend('off');
-
 textH1 = getPlotHandles(1,1,[0.17 0.97 0.01 0.01]);
 textH2 = getPlotHandles(1,1,[0.52 0.97 0.01 0.01]);
-
-
 textString1 = 'Unipolar';
-
 textString2 = 'Bipolar';
 
 set(textH1,'Visible','Off'); set(textH2,'Visible','Off')
 text(0.35,1.15,textString1,'unit','normalized','fontsize',18,'fontweight','bold','parent',textH1);
 text(0.35,1.15,textString2,'unit','normalized','fontsize',18,'fontweight','bold','parent',textH2);
-
-
-
 
 if eotCodeIdx ==1
     EOTCode = 'Hits';
@@ -414,17 +389,23 @@ elseif eotCodeIdx ==2
     EOTCode = 'Misses';
 end
 
-displayRange(hPlotsFig.hPlot2,[8 12],[-5 5],'k','solid-solid')
-displayRange(hPlotsFig.hPlot2,[42 78],[-5 5],'m','solid-solid')
-displayRange(hPlotsFig.hPlot2(2:3,:),[23 23],[-5 5],'g','solid-solid')
-displayRange(hPlotsFig.hPlot2(2:3,:),[31 31],[-5 5],'c','solid-solid')
+displayRange(hPlotsFig.hPlot2,freqRanges{1},[-5 5],'k','solid-solid')
+displayRange(hPlotsFig.hPlot2,freqRanges{2},[-5 5],'m','solid-solid')
+displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{3},[-5 5],'g','solid-solid')
+displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{4},[-5 5],'c','solid-solid')
 
-displayRange(hPlotsFig.hPlot4,[8 12],[-5 5],'k','solid-solid')
-displayRange(hPlotsFig.hPlot4,[42 78],[-5 5],'m','solid-solid')
-displayRange(hPlotsFig.hPlot4(2:3,:),[23 23],[-5 5],'g','solid-solid')
-displayRange(hPlotsFig.hPlot4(2:3,:),[31 31],[-5 5],'c','solid-solid')
+displayRange(hPlotsFig.hPlot4,freqRanges{1},[-5 5],'k','solid-solid')
+displayRange(hPlotsFig.hPlot4,freqRanges{2},[-5 5],'m','solid-solid')
+displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{3},[-5 5],'g','solid-solid')
+displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{4},[-5 5],'c','solid-solid')
 
-figName = fullfile(folderSourceString,[protocolType '_new2_allSubjects_N_7_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+if length(subjectIdx) == 26
+figName = fullfile(folderSourceString,[protocolType '_allSubjects_N_' num2str(length(subjectIdx)) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+elseif length(subjectIdx)== 1
+figName = fullfile(folderSourceString,[protocolType '_SubjectID_' num2str(subjectIdx) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+elseif length(subjectIdx)>1
+figName = fullfile(folderSourceString,[protocolType '_SubjectIDs_' num2str(subjectIdx(1)) '_' num2str(subjectIdx(end)) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+end
 saveas(hFig,[figName '.fig'])
 print(hFig,[figName '.tif'],'-dtiff','-r600')
 
@@ -457,7 +438,7 @@ end
 end
 
 % get Y limits for an axis
-function yLims = getYLims(plotHandles)
+function yLims = getYLims(plotHandles) %#ok<DEFNU>
 
 [numRows,numCols] = size(plotHandles);
 % Initialize
