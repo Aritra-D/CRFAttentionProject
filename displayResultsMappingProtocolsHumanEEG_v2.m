@@ -124,7 +124,7 @@ for iRefScheme = 1:2
 
                 
             elseif sideChoice == 1
-                EEGChannelsLeft = [65];
+                EEGChannelsLeft = [24 29 57 61]; % Left Photodiode elec 65
                 EEGChannelsStored{1} = EEGChannelsLeft;
                 
                 bipolarEEGChannelsStored(1,:) = [61 61 62];
@@ -132,7 +132,7 @@ for iRefScheme = 1:2
 
                 
             elseif sideChoice == 2
-                EEGChannelsRight = [66];
+                EEGChannelsRight = [26 31 58 63]; % Right Photodiode elec 66
                 EEGChannelsStored{1} = EEGChannelsRight;
                 
                 bipolarEEGChannelsStored(1,:) = [63 63 62];
@@ -218,6 +218,7 @@ for iRefScheme = 1:2
                 if isempty(goodPos)
                     disp(['No entries for this combination.. iProt == ' num2str(iProt) ' TF ==' num2str(iTF)]);
                 else
+                    disp(['TF: ' num2str(iTF) ', n = ' num2str(length(goodPos))])
                     if strcmp(analysisType,'FFT')
                         fftBL(iProt,iElec,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData(goodPos,blPos),[],2))))); %#ok<*NASGU,*AGROW>
                         fftST(iProt,iElec,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData(goodPos,stPos),[],2)))));
@@ -236,8 +237,8 @@ for iRefScheme = 1:2
                         movingwin = [winSize winStep];
                         
                         % PSD
-                        [tmpEBL,freqValsBL] = mtspectrumc(x.analogData(goodPos,blPos)',params);
-                        [tmpEST,freqValsST] = mtspectrumc(x.analogData(goodPos,stPos)',params);
+                        [tmpEBL,freqValsBL] = mtspectrumc(mean(x.analogData(goodPos,blPos),1)',params);
+                        [tmpEST,freqValsST] = mtspectrumc(mean(x.analogData(goodPos,stPos),1)',params);
                         if isequal(freqValsBL,freqValsST)
                             freqVals = freqValsST;
                         end
@@ -381,8 +382,8 @@ elseif iRefScheme == 2
     end
 end
 
-saveas(hFig,[figName '.fig'])
-print(hFig,[figName '.tif'],'-dtiff','-r600')
+% saveas(hFig,[figName '.fig'])
+% print(hFig,[figName '.tif'],'-dtiff','-r600')
 end
 
 

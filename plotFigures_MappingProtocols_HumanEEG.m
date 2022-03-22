@@ -1,5 +1,5 @@
 function plotFigures_MappingProtocols_HumanEEG(protocolType,analysisType,plotFSDataFlag,plotCombinedData)
-close all;
+% close all;
 
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='EEG';      end
@@ -110,7 +110,7 @@ for iElecSide = 1:2
 end
 
 
-% Main Loop for plotting Unipolar
+% Main Loop for plotting Bipolar
 for iElecSide = 1:2
     if iElecSide ==1
         elecList = elecList_Bipolar_Left;
@@ -195,11 +195,11 @@ elseif plotCombinedData ==1
         if  iFreqRange == 3
             for iElec = 1:length(elecUnipolarList)
                 if iElec == 1 || iElec == 2|| iElec == 3|| iElec == 4
-                    dataBL(:,:,iElec) = energyData.analysisDataBL{1,1}{1,4}(:,:,iElec); %#ok<*AGROW>
-                    dataST(:,:,iElec) = energyData.analysisDataST{1,1}{1,4}(:,:,iElec);
+                    dataBL(:,:,iElec) = energyData.analysisDataBL{1,1}{1,4}(:,:,elecUnipolarList(iElec)); %#ok<*AGROW>
+                    dataST(:,:,iElec) = energyData.analysisDataST{1,1}{1,4}(:,:,elecUnipolarList(iElec));
                 elseif iElec == 5 || iElec == 6|| iElec == 7|| iElec == 8
-                    dataBL(:,:,iElec)= energyData.analysisDataBL{1,1}{1,3}(:,:,iElec);
-                    dataST(:,:,iElec) = energyData.analysisDataST{1,1}{1,3}(:,:,iElec);
+                    dataBL(:,:,iElec)= energyData.analysisDataBL{1,1}{1,3}(:,:,elecUnipolarList(iElec));
+                    dataST(:,:,iElec) = energyData.analysisDataST{1,1}{1,3}(:,:,elecUnipolarList(iElec));
                 end
             end
         else
@@ -218,18 +218,18 @@ elseif plotCombinedData ==1
         
     end
     
-% Main Loop for plotting Unipolar
+% Main Loop for plotting Bipolar
 
     for iFreqRange = 1:length(freqRanges)-1
         clear dataBL dataST
         if  iFreqRange == 3
             for iElec = 1:length(elecBipolarList)
                 if iElec == 1 || iElec == 2|| iElec == 3
-                    dataBL(:,:,iElec) = energyData.analysisDataBL{1,2}{1,4}(:,:,iElec); %#ok<*AGROW>
-                    dataST(:,:,iElec) = energyData.analysisDataST{1,2}{1,4}(:,:,iElec);
+                    dataBL(:,:,iElec) = energyData.analysisDataBL{1,2}{1,4}(:,:,elecBipolarList(iElec)); %#ok<*AGROW>
+                    dataST(:,:,iElec) = energyData.analysisDataST{1,2}{1,4}(:,:,elecBipolarList(iElec));
                 elseif iElec == 4 || iElec == 5|| iElec == 6
-                    dataBL(:,:,iElec)= energyData.analysisDataBL{1,2}{1,3}(:,:,iElec);
-                    dataST(:,:,iElec) = energyData.analysisDataST{1,2}{1,3}(:,:,iElec);
+                    dataBL(:,:,iElec)= energyData.analysisDataBL{1,2}{1,3}(:,:,elecBipolarList(iElec));
+                    dataST(:,:,iElec) = energyData.analysisDataST{1,2}{1,3}(:,:,elecBipolarList(iElec));
                 end
             end
         else
