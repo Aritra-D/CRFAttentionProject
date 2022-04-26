@@ -1,4 +1,4 @@
-function plotFigures_SRCProtocols_HumanEEG(protocolType,analysisMethodFlag,plotPSDFlag,plotDeltaPSDFlag,subjectIdx,eotCodeIdx)
+function plotFigures_SRCProtocols_HumanEEG(protocolType,analysisMethod,SSVEP_AnalysisMethodFlag,plotPSDFlag,plotDeltaPSDFlag,subjectIdx,eotCodeIdx)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
@@ -11,18 +11,32 @@ timingParamters.stRange = [0.250 1.250];
 timingParamters.tgRange = [-1.000 0];
 timingParamters.erpRange = [0 0.250];
 
-freqRanges{1} = [8 12]; % alpha
-freqRanges{2} = [20 66]; % gamma
-freqRanges{3} = [24 24];  % SSVEP Left Stim
-freqRanges{4} = [32 32];  % SSVEP Right Stim
-numFreqs = length(freqRanges); %#ok<*NASGU>
+if  all(subjectIdx<7) % First Set of Recording- Nov-Dec 2021
+    freqRanges{1} = [8 12];    % alpha
+    freqRanges{2} = [20 66];   % gamma
+    freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+    freqRanges{4} = [31 31];   % SSVEP Right Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+    freqRanges{5} = [20 34];   % Slow Gamma
+    freqRanges{6} = [36 66];   % Fast Gamma
+    freqRanges{7} = [102 250]; % High Gamma
+else % Second Set of Recording- Jan-Mar 2022
+    freqRanges{1} = [8 12];    % alpha
+    freqRanges{2} = [20 66];   % gamma
+    freqRanges{3} = [24 24];   % SSVEP Left Stim; Flicker Freq bug Fixed
+    freqRanges{4} = [32 32];   % SSVEP Right Stim; Flicker Freq bug Fixed
+    freqRanges{5} = [20 34];   % Slow Gamma
+    freqRanges{6} = [36 66];   % Fast Gamma
+    freqRanges{7} = [102 250]; % High Gamma
+end
+numFreqs = length(freqRanges);
+
 
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) '.mat']);
 if exist(fileName, 'file')
     load(fileName) %#ok<*LOAD>
 else
     [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers,freqRanges);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers);
     save(fileName,'erpData','fftData','energyData','badHighPriorityElecs','badElecs')
 end
 
@@ -30,7 +44,7 @@ end
 attendColors = {'r', 'b'}; % r = Attend contralateral; b = Attend ipsilateral
 
 % Electrode List
-electrodeList_Unipolar = getElectrodeList('actiCap64','unipolar',1);
+electrodeList_Unipolar = getElectrodeList('actiCap64','unipolar',1); %#ok<*NASGU>
 electrodeList_Bipolar = getElectrodeList('actiCap64','bipolar',1);
 
 highPriorityUnipolarElectrodes = getHighPriorityElectrodes('actiCap64');
@@ -45,7 +59,14 @@ elecList_Bipolar_Right = [96 97 102];
 elecList_Left{1} = elecList_Unipolar_Left; elecList_Left{2} = elecList_Bipolar_Left;
 elecList_Right{1} = elecList_Unipolar_Right; elecList_Right{2} = elecList_Bipolar_Right;
 
-if analysisMethodFlag % Replacing the PSD and power Values for Flickering conditions when MT is computed on mean signal! 
+if strcmp(analysisMethod,'FFT')
+    energyData.dataBL = fftData.dataBL;
+    energyData.dataST = fftData.dataST;
+    energyData.dataTG = fftData.dataTG;
+    energyData.freqVals = fftData.freqVals; 
+end
+
+if SSVEP_AnalysisMethodFlag % Replacing the PSD and power Values for Flickering conditions when MT is computed on mean signal! 
     
     %     clear energyData.dataBL energyData.dataST energyData.dataTG
     %     clear energyData.analysisDataBL energyData.analysisDataST energyData.analysisDataTG
@@ -369,10 +390,10 @@ rescaleData(hPlotsFig.hPlot1(:,1),-1.000,1.250,[-15 10],12,0);
 rescaleData(hPlotsFig.hPlot1(:,2),-1.000,0.800,[-15 10],12,2);
 rescaleData(hPlotsFig.hPlot3(:,1),-1.000,1.250,[-15 10],12,0);
 rescaleData(hPlotsFig.hPlot3(:,2),-1.000,0.800,[-15 10],12,2);
-rescaleData(hPlotsFig.hPlot2,0,100,[-5 5],12,0);
-rescaleData(hPlotsFig.hPlot4,0,100,[-5 5],12,0);
-rescaleData(hPlotsFig.hPlot5,0,6,[-2 3],12,0);
-rescaleData(hPlotsFig.hPlot6,0,6,[-2 3],12,0);
+rescaleData(hPlotsFig.hPlot2,0,100,[-6 6],12,0);
+rescaleData(hPlotsFig.hPlot4,0,100,[-6 6],12,0);
+rescaleData(hPlotsFig.hPlot5,0,6,[-6 6],12,0);
+rescaleData(hPlotsFig.hPlot6,0,6,[-6 6],12,0);
 
 textH1 = getPlotHandles(1,1,[0.17 0.97 0.01 0.01]);
 textH2 = getPlotHandles(1,1,[0.52 0.97 0.01 0.01]);
@@ -389,22 +410,22 @@ elseif eotCodeIdx ==2
     EOTCode = 'Misses';
 end
 
-displayRange(hPlotsFig.hPlot2,freqRanges{1},[-5 5],'k','solid-solid')
-displayRange(hPlotsFig.hPlot2,freqRanges{2},[-5 5],'m','solid-solid')
-displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{3},[-5 5],'g','solid-solid')
-displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{4},[-5 5],'c','solid-solid')
+displayRange(hPlotsFig.hPlot2,freqRanges{1},[-6 6],'k','solid-solid')
+displayRange(hPlotsFig.hPlot2,freqRanges{2},[-6 6],'m','solid-solid')
+displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{3},[-6 6],'g','solid-solid')
+displayRange(hPlotsFig.hPlot2(2:3,:),freqRanges{4},[-6 6],'c','solid-solid')
 
-displayRange(hPlotsFig.hPlot4,freqRanges{1},[-5 5],'k','solid-solid')
-displayRange(hPlotsFig.hPlot4,freqRanges{2},[-5 5],'m','solid-solid')
-displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{3},[-5 5],'g','solid-solid')
-displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{4},[-5 5],'c','solid-solid')
+displayRange(hPlotsFig.hPlot4,freqRanges{1},[-6 6],'k','solid-solid')
+displayRange(hPlotsFig.hPlot4,freqRanges{2},[-6 6],'m','solid-solid')
+displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{3},[-6 6],'g','solid-solid')
+displayRange(hPlotsFig.hPlot4(2:3,:),freqRanges{4},[-6 6],'c','solid-solid')
 
 if length(subjectIdx) == 26
-figName = fullfile(folderSourceString,[protocolType '_allSubjects_N_' num2str(length(subjectIdx)) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+figName = fullfile(folderSourceString,[protocolType '_allSubjects_N_' num2str(length(subjectIdx)) '_SSVEPanalysisMethod',num2str(SSVEP_AnalysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
 elseif length(subjectIdx)== 1
-figName = fullfile(folderSourceString,[protocolType '_SubjectID_' num2str(subjectIdx) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+figName = fullfile(folderSourceString,[protocolType '_SubjectID_' num2str(subjectIdx) '_SSVEPanalysisMethod',num2str(SSVEP_AnalysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
 elseif length(subjectIdx)>1
-figName = fullfile(folderSourceString,[protocolType '_SubjectIDs_' num2str(subjectIdx(1)) '_' num2str(subjectIdx(end)) '_analysisMethod',num2str(analysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
+figName = fullfile(folderSourceString,[protocolType '_SubjectIDs_' num2str(subjectIdx(1)) '_' num2str(subjectIdx(end)) '_SSVEPanalysisMethod',num2str(SSVEP_AnalysisMethodFlag) '_plotPSDFlag' num2str(plotPSDFlag) '_plotDeltaPSDFlag' num2str(plotDeltaPSDFlag)  '_EOTCode_' num2str(EOTCode) '_tapers_' , num2str(tapers(2))]);
 end
 saveas(hFig,[figName '.fig'])
 print(hFig,[figName '.tif'],'-dtiff','-r600')

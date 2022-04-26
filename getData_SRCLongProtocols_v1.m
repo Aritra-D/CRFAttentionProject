@@ -1,10 +1,9 @@
-function [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,freqRanges)
+function [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers)
 
 [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType);
 
 deviceName = 'BP';
 capType = 'actiCap64';
-numFreqs = length(freqRanges);
 
 % Fixed indexing combinations
 c = 1; s = 1; % Contrast and StimType Index are set as 1 for SRC-Long Protocols
@@ -19,6 +18,25 @@ for iRef = 1:2
         folderExtract= fullfile(folderName,'extractedData');
         folderSegment= fullfile(folderName,'segmentedData');
         folderLFP = fullfile(folderSegment,'LFP');
+        
+        if iSub<7 % First Set of Recording- Nov-Dec 2021
+            freqRanges{1} = [8 12];    % alpha
+            freqRanges{2} = [20 66];   % gamma
+            freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+            freqRanges{4} = [31 31];   % SSVEP Right Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+            freqRanges{5} = [20 34];   % Slow Gamma
+            freqRanges{6} = [36 66];   % Fast Gamma
+            freqRanges{7} = [102 250]; % High Gamma
+        else % Second Set of Recording- Jan-Mar 2022
+            freqRanges{1} = [8 12];    % alpha
+            freqRanges{2} = [20 66];   % gamma
+            freqRanges{3} = [24 24];   % SSVEP Left Stim; Flicker Freq bug Fixed
+            freqRanges{4} = [32 32];   % SSVEP Right Stim; Flicker Freq bug Fixed
+            freqRanges{5} = [20 34];   % Slow Gamma
+            freqRanges{6} = [36 66];   % Fast Gamma
+            freqRanges{7} = [102 250]; % High Gamma
+        end
+        numFreqs = length(freqRanges);
         
         % load LFP Info
         [analogChannelsStored,timeVals,~,~] = loadlfpInfo(folderLFP);
@@ -172,14 +190,39 @@ for iRef = 1:2
                                 freqVals = freqValsBL;
                             end
                             
+                            if iTF == 1
+                                tfLeft = 0; tfRight = 0;
+                            else
+                                if iAttendLoc == 1 % Right
+                                    if iTF == 2
+                                        tfLeft = unique(freqRanges{4}/2); tfRight = unique(freqRanges{3}/2);
+                                    elseif iTF ==3
+                                        tfLeft = unique(freqRanges{3}/2); tfRight = unique(freqRanges{4}/2);
+                                    end
+                                elseif iAttendLoc == 2
+                                    if iTF == 2
+                                        tfLeft = unique(freqRanges{3}/2); tfRight = unique(freqRanges{4}/2);
+                                    elseif iTF ==3
+                                        tfLeft = unique(freqRanges{4}/2); tfRight = unique(freqRanges{3}/2);
+                                    end
+                                end
+                            end
+
                             psdBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEBL;
                             psdST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEST;
                             psdTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG;
                             
-                            for iFreqRange=1:4
-                                powerValsBL{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{iFreqRange});
-                                powerValsST{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{iFreqRange});
-                                powerValsTG{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG,freqVals,freqRanges{iFreqRange});
+                            for iFreqRange=1:length(freqRanges)
+                                if iFreqRange == 2||iFreqRange == 5||iFreqRange == 6
+                                    remove_NthHarmonicOnwards = 2;
+                                else
+                                    remove_NthHarmonicOnwards = 3;
+                                end
+                                deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
+                                badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
+                                powerValsBL{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{iFreqRange},badFreqPos);
+                                powerValsST{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{iFreqRange},badFreqPos);
+                                powerValsTG{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG,freqVals,freqRanges{iFreqRange},badFreqPos);
                             end
                             
                             % computing time-frequency spectrum by
@@ -207,16 +250,15 @@ for iRef = 1:2
                             [tmpEBL_avg,~] = mtspectrumc(dataBL_avg,params);
                             [tmpEST_avg,~] = mtspectrumc(dataStimOnset_avg,params);
                             [tmpETG_avg,~] = mtspectrumc(dataTargetOnset_avg,params);
-
-                            
+                           
                             psdBL_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEBL_avg;
                             psdST_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEST_avg;
                             psdTG_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG_avg;
                             
-                            for iFreqRange=1:4
-                                powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange});
-                                powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange});
-                                powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange});
+                            for iFreqRange=1:length(freqRanges)
+                                powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
+                                powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
+                                powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
                             end
                             
                             % computing time-frequency spectrum by
@@ -343,10 +385,42 @@ end
 % end
 
 % Get MeanEnergy for different frequency bands
-function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange)
+function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange,badFreqPos)
 
-posToAverage = intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2)));
+posToAverage = setdiff(intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2))),badFreqPos);
 eValue   = sum(mEnergy(posToAverage));
+end
+
+function badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_TFHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight)
+% During this Project, line Noise was at
+% 51 Hz for 1 Hz Freq Resolution and
+% 52 Hz for 2 Hz Freq Resolution
+
+if nargin<2
+    deltaF_LineNoise = 1; deltaF_TFHarmonics = 0; tfLeft = 0; tfRight = 0;
+end
+
+if tfLeft>0 && tfRight>0 % Flickering Stimuli
+    badFreqs = [51:51:max(freqVals)];
+    tfHarmonics1 = [remove_NthHarmonicOnwards*tfLeft:tfLeft:max(freqVals)]; % remove 3rd SSVEP harmonic and beyond
+    tfHarmonics2 = [remove_NthHarmonicOnwards*tfRight:tfRight:max(freqVals)]; % remove 3rd SSVEP harmonic and beyond
+    tfHarmonics = unique([tfHarmonics1 tfHarmonics2]);
+elseif tfLeft==0 && tfRight==0 % Static Stimuli
+    badFreqs = 51:51:max(freqVals);
+end
+
+badFreqPos = [];  
+for i=1:length(badFreqs)
+    badFreqPos = cat(2,badFreqPos,intersect(find(freqVals>=badFreqs(i)-deltaF_LineNoise),find(freqVals<=badFreqs(i)+deltaF_LineNoise)));
+end
+
+if exist('tfHarmonics','var')
+    freqPosToRemove =  [];
+    for i=1:length(badFreqs)
+        freqPosToRemove = cat(2,freqPosToRemove,intersect(find(freqVals>=tfHarmonics(i)-deltaF_TFHarmonics),find(freqVals<=tfHarmonics(i)+deltaF_TFHarmonics)));
+    end
+    badFreqPos = unique([badFreqPos freqPosToRemove]);
+end
 end
 
 function [contrastString,contrastCellArray] = getContrastString(cIndexValsUnique,stimResults) %#ok<*DEFNU>

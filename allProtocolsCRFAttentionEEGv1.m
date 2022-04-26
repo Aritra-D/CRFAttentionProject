@@ -1,4 +1,4 @@
-function [subjectNames,expDates,protocolNames,stimType,deviceName,capLayout] = allProtocolsCRFAttentionEEG
+function [subjectNames,expDates,protocolNames,stimType,deviceName,capLayout] = allProtocolsCRFAttentionEEGv1
 
 %% Recorded in Rig 4: Stim type 2: Sampling Rate: 1000 Hz, timeStartFromBaseLineList(2) = -1.148; deltaTList(2) = 2.048;
 clear index; index=1; deviceName{index} = 'BP'; subjectNames{index} = 'AD'; expDates{index} = '221015'; protocolNames{index} = 'SRC_0001'; capLayout{index} = 'actiCap64'; stimType{index} = 2; 
