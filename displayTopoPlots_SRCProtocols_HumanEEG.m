@@ -1,4 +1,4 @@
-function displayTopoPlots_SRCProtocols_HumanEEG(protocolType,analysisMethodFlag,plotRawTopoFlag,subjectIdx,eotCodeIdx,TFIdx,measureType)
+function displayTopoPlots_SRCProtocols_HumanEEG(protocolType,analysisMethodFlag,plotRawTopoFlag,subjectIdx,eotCodeIdx,TFIdx,measureType,topoplot_style)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
@@ -120,38 +120,38 @@ for iRef = 1:2
                 figure(1); colormap magma
                 if iAttLoc ==1
                     subplot(hPlotsTopo2(iRhythm,1)); cla; hold on;
-                    topoplot_murty(diffPowerST,chanlocs_Unipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerST,chanlocs_Unipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Unipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsUnipolarLeft);
                     
                     subplot(hPlotsTopo2(iRhythm,2)); cla; hold on;
-                    topoplot_murty(diffPowerTG,chanlocs_Unipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerTG,chanlocs_Unipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Unipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsUnipolarLeft);
                 elseif iAttLoc ==2
                     subplot(hPlotsTopo1(iRhythm,1)); cla; hold on;
-                    topoplot_murty(diffPowerST,chanlocs_Unipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerST,chanlocs_Unipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Unipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsUnipolarRight);
                     
                     subplot(hPlotsTopo1(iRhythm,2)); cla; hold on;
-                    topoplot_murty(diffPowerTG,chanlocs_Unipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerTG,chanlocs_Unipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Unipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsUnipolarRight);
                 end
             elseif iRef == 2
                 figure(2); colormap magma
                 if iAttLoc ==1
                     subplot(hPlotsTopo4(iRhythm,1)); cla; hold on;
-                    topoplot_murty(diffPowerST,chanlocs_Bipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerST,chanlocs_Bipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Bipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsBipolarLeft);
                     
                     subplot(hPlotsTopo4(iRhythm,2)); cla; hold on;
-                    topoplot_murty(diffPowerTG,chanlocs_Bipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerTG,chanlocs_Bipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Bipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsBipolarLeft);
                 elseif iAttLoc ==2
                     subplot(hPlotsTopo3(iRhythm,1)); cla; hold on;
-                    topoplot_murty(diffPowerST,chanlocs_Bipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerST,chanlocs_Bipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerST); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Bipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsBipolarRight);
                     
                     subplot(hPlotsTopo3(iRhythm,2)); cla; hold on;
-                    topoplot_murty(diffPowerTG,chanlocs_Bipolar,'electrodes','off','style','blank','drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
+                    topoplot_murty(diffPowerTG,chanlocs_Bipolar,'electrodes','off','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',diffPowerTG); caxis(cLimsTopo);
                     topoplot_murty([],chanlocs_Bipolar,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecsBipolarRight);
                 end
             end
