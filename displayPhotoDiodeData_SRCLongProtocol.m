@@ -57,32 +57,32 @@ if analysisMethodFlag
 end
 
 for iTF = 1:3
-    erpData_stimOn_Left = squeeze(mean(mean(mean(mean(erpData.dataST(SubjectNum,1,:,AttendLoc,iTF,:),4),3),2),1));
-    erpData_stimOn_Right = squeeze(mean(mean(mean(mean(erpData.dataST(SubjectNum,2,:,AttendLoc,iTF,:),4),3),2),1));
-    erpData_targetOn_Left = squeeze(mean(mean(mean(mean(erpData.dataTG(SubjectNum,1,:,AttendLoc,iTF,:),4),3),2),1));
-    erpData_targetOn_Right = squeeze(mean(mean(mean(mean(erpData.dataTG(SubjectNum,2,:,AttendLoc,iTF,:),4),3),2),1));
+    erpData_stimOn_Left = squeeze(mean(mean(mean(erpData.dataST(SubjectNum,1,:,AttendLoc,iTF,:),3),2),1));
+    erpData_stimOn_Right = squeeze(mean(mean(mean(erpData.dataST(SubjectNum,2,:,AttendLoc,iTF,:),3),2),1));
+    erpData_targetOn_Left = squeeze(mean(mean(mean(erpData.dataTG(SubjectNum,1,:,AttendLoc,iTF,:),3),2),1));
+    erpData_targetOn_Right = squeeze(mean(mean(mean(erpData.dataTG(SubjectNum,2,:,AttendLoc,iTF,:),3),2),1));
 
-    psdDataBL_stimOn_Left = squeeze(mean(mean(mean(mean(energyData.dataBL(SubjectNum,1,:,AttendLoc,iTF,:),4),3),2),1));
-    psdDataBL_stimOn_Right = squeeze(mean(mean(mean(mean(energyData.dataBL(SubjectNum,2,:,AttendLoc,iTF,:),4),3),2),1));
-    psdDataST_stimOn_Left = squeeze(mean(mean(mean(mean(energyData.dataST(SubjectNum,1,:,AttendLoc,iTF,:),4),3),2),1));
-    psdDataST_stimOn_Right = squeeze(mean(mean(mean(mean(energyData.dataST(SubjectNum,2,:,AttendLoc,iTF,:),4),3),2),1));
-    psdDataTG_targetOn_Left = squeeze(mean(mean(mean(mean(energyData.dataTG(SubjectNum,1,:,AttendLoc,iTF,:),4),3),2),1));
-    psdDataTG_targetOn_Right = squeeze(mean(mean(mean(mean(energyData.dataTG(SubjectNum,2,:,AttendLoc,iTF,:),4),3),2),1));
+    psdDataBL_stimOn_Left = squeeze(mean(mean(mean(energyData.dataBL(SubjectNum,1,:,AttendLoc,iTF,:),3),2),1));
+    psdDataBL_stimOn_Right = squeeze(mean(mean(mean(energyData.dataBL(SubjectNum,2,:,AttendLoc,iTF,:),3),2),1));
+    psdDataST_stimOn_Left = squeeze(mean(mean(mean(energyData.dataST(SubjectNum,1,:,AttendLoc,iTF,:),3),2),1));
+    psdDataST_stimOn_Right = squeeze(mean(mean(mean(energyData.dataST(SubjectNum,2,:,AttendLoc,iTF,:),3),2),1));
+    psdDataTG_targetOn_Left = squeeze(mean(mean(mean(energyData.dataTG(SubjectNum,1,:,AttendLoc,iTF,:),3),2),1));
+    psdDataTG_targetOn_Right = squeeze(mean(mean(mean(energyData.dataTG(SubjectNum,2,:,AttendLoc,iTF,:),3),2),1));
     
     plot(hPlotsFig.hPlot1(iTF,1),erpData.timeVals,erpData_stimOn_Left,'b');
     plot(hPlotsFig.hPlot1(iTF,2),erpData.timeVals,erpData_stimOn_Right,'b');
     plot(hPlotsFig.hPlot3(iTF,1),erpData.timeVals,erpData_targetOn_Left,'b');
     plot(hPlotsFig.hPlot3(iTF,2),erpData.timeVals,erpData_targetOn_Right,'b');
     
-    plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdDataBL_stimOn_Left,'k');hold(hPlotsFig.hPlot2(iTF,1),'on')
-    plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdDataBL_stimOn_Right,'k');hold(hPlotsFig.hPlot2(iTF,2),'on')
-    plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdDataBL_stimOn_Left,'k');hold(hPlotsFig.hPlot4(iTF,1),'on')
-    plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdDataBL_stimOn_Right,'k');hold(hPlotsFig.hPlot4(iTF,2),'on')
+    plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdDataBL_stimOn_Left,'g');hold(hPlotsFig.hPlot2(iTF,1),'on')
+    plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdDataBL_stimOn_Right,'g');hold(hPlotsFig.hPlot2(iTF,2),'on')
+    plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdDataBL_stimOn_Left,'g');hold(hPlotsFig.hPlot4(iTF,1),'on')
+    plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdDataBL_stimOn_Right,'g');hold(hPlotsFig.hPlot4(iTF,2),'on')
 
-    plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdDataST_stimOn_Left,'g');
-    plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdDataST_stimOn_Right,'g');
-    plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdDataTG_targetOn_Left,'g');
-    plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdDataTG_targetOn_Right,'g');
+    plot(hPlotsFig.hPlot2(iTF,1),energyData.freqVals,psdDataST_stimOn_Left,'k');
+    plot(hPlotsFig.hPlot2(iTF,2),energyData.freqVals,psdDataST_stimOn_Right,'k');
+    plot(hPlotsFig.hPlot4(iTF,1),energyData.freqVals,psdDataTG_targetOn_Left,'k');
+    plot(hPlotsFig.hPlot4(iTF,2),energyData.freqVals,psdDataTG_targetOn_Right,'k');
 end
 
 title(hPlotsFig.hPlot1(1,1),'PDL');title(hPlotsFig.hPlot1(1,2),'PDR');
@@ -222,7 +222,10 @@ for iSub = 1:size(subjectNames,1)
                         RMSValsERP_Stim(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_stimOnset(erpPos));
                         RMSValsERP_Target(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = rms(erp_targetOnset(erpPos));
                         
+                        % Baseline Corrected analogData 
+                        
                         % fft
+                        
                         fftBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,blPos),[],2))))); %#ok<*NASGU,*AGROW>
                         fftST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.stimOnset(goodPos_stimOnset,stPos),[],2)))));
                         fftTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData.targetOnset(goodPos_targetOnset,tgPos),[],2)))));

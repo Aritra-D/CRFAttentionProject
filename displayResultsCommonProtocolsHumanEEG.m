@@ -3,7 +3,7 @@
 % for Unipolar (Figure 1) and Bipolar Referencing (Figure 2)
 % It has an additional option to plot difference in PSDs.
 
-function displayResultsCommonProtocolsHumanEEG(subjectName,expDate,protocolIDs,gridType,folderSourceString,noInterStimFlag,analysisType,tapers_MT,plotPSDFlag,plotdPSDFlag)
+function displayResultsCommonProtocolsHumanEEG(subjectName,expDate,protocolIDs,gridType,folderSourceString,noInterStimFlag,analysisType,tapers_MT,plotPSDFlag,plotdPSDFlag,displayPhotodiodeDataFlag,saveFigureFlag)
 
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='Microelectrode';      end
@@ -83,16 +83,25 @@ for iRefScheme = 1:2
         photoDiodeIDs = [65 66];
         unipolarEEGChannelsStored = setdiff(analogChannelsStored,photoDiodeIDs);
         
-        % 64-Channel Standard Acticap Layout
-        % UnipolarEEGChannelLabels =    [P3     P1      P2      P4      PO3     POz     PO4     O1      Oz      O2];
-        EEGChannelsStored{1} =          [24     57      58      26      61      62      63      29      30      31]; % Unipolar Electrodes
-        % (This numbers can also be verified from  in CommonPrograms\ReadMontages\getHighPriorityElectrodes)
-        
-        % bipolarEEGChannelLabels1 =    [PO3    PO3     POz     PO4     PO4     POz     Oz      Oz      Oz]
-        % bipolarEEGChannelLabels2 =    [P1     P3      PO3     P2      P4      PO4     POz     O1      O2]
-        bipolarEEGChannelsStored(1,:) = [61     61      62      63      63      62      30      30      30];
-        bipolarEEGChannelsStored(2,:) = [57     24      61      58      26      63      62      29      31];
-        EEGChannelsStored{2} = bipolarEEGChannelsStored;% Bipolar Electrodes
+        if displayPhotodiodeDataFlag
+            EEGChannelsStored{1} = photoDiodeIDs;
+            
+            bipolarEEGChannelsStored(1,:) = [photoDiodeIDs(1) photoDiodeIDs(1)];
+            bipolarEEGChannelsStored(2,:) = [photoDiodeIDs(2) photoDiodeIDs(2)];
+            EEGChannelsStored{2} = bipolarEEGChannelsStored;% Bipolar Electrodes
+            
+        else
+            % 64-Channel Standard Acticap Layout
+            % UnipolarEEGChannelLabels =    [P3     P1      P2      P4      PO3     POz     PO4     O1      Oz      O2];
+            EEGChannelsStored{1} =          [24     57      58      26      61      62      63      29      30      31]; % Unipolar Electrodes
+            % (This numbers can also be verified from  in CommonPrograms\ReadMontages\getHighPriorityElectrodes)
+            
+            % bipolarEEGChannelLabels1 =    [PO3    PO3     POz     PO4     PO4     POz     Oz      Oz      Oz]
+            % bipolarEEGChannelLabels2 =    [P1     P3      PO3     P2      P4      PO4     POz     O1      O2]
+            bipolarEEGChannelsStored(1,:) = [61     61      62      63      63      62      30      30      30];
+            bipolarEEGChannelsStored(2,:) = [57     24      61      58      26      63      62      29      31];
+            EEGChannelsStored{2} = bipolarEEGChannelsStored;% Bipolar Electrodes
+        end
         
     EEGChannelsStored{1} = setdiff(EEGChannelsStored{1},badElecsAll);% Unipolar Electrodes
     badIDs = [];
@@ -504,8 +513,11 @@ for iRefScheme = 1:2
     legend(hPlotsFig.hPlot1(1),'Eyes Open','Eyes Closed','Location','best')
     legend(hPlotsFig.hPlot1(2),'Baseline Period [-0.5s to 0s]','Stimulus Period [0.25s to 0.75s]','Location','best')
     
-    saveas(hFig,[figName '.fig'])
-    print(hFig,[figName '.tif'],'-dtiff','-r600')
+    if saveFigureFlag
+        saveas(hFig,[figName '.fig'])
+        print(hFig,[figName '.tif'],'-dtiff','-r600')
+    else
+    end
 %     
 %     % plotTopoplots
 %     refType = 'bipolar'; projectName = 'CRFAttentionProject';
