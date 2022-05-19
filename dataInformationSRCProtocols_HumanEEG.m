@@ -14,8 +14,35 @@ end
 [allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType 'v1']);
 
 % stimList = cell(1,4);
+if strcmp(protocolType, 'SRC-Long_Psychophysics')
+    protocolList{1} =  247;  % AD
+    protocolList{2} =  249;  % NN
+    protocolList{3} =  251;  % NM
+    protocolList{4} =  260;  % SSP
+    protocolList{5} =  264;  % SK
+    protocolList{6} =  266;  % AB
+    protocolList{7} =  271;  % LK
+    protocolList{8} =  276;  % DG
+    protocolList{9} =  287;  % SW
+    protocolList{10} = 293;  % AR
+    protocolList{11} = 299;  % SN
+    protocolList{12} = 305;  % AM
+    protocolList{13} = 314;  % SU
+    protocolList{14} = 323;  % ArD
+    protocolList{15} = 333;  % UG
+    protocolList{16} = 340;  % SS
+    protocolList{17} = 348;  % SNS
+    protocolList{18} = 355;  % SG
+    protocolList{19} = 361;  % MK
+    protocolList{20} = 382;  % SR
+    protocolList{21} = 386;  % SP
+    protocolList{22} = 408;  % RG
+    protocolList{23} = 414;  % IJ
+    protocolList{24} = 422;  % SM
+    protocolList{25} = 444;  % SJP
+    protocolList{26} = 459;  % SC
 
-if strcmp(protocolType, 'SRC-Long')
+elseif strcmp(protocolType, 'SRC-Long')
     protocolList{1} = 248;  % AD
     protocolList{2} = 250;  % NN
     protocolList{3} = 252;  % NM

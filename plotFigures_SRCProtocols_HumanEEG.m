@@ -11,7 +11,7 @@ timingParamters.stRange = [0.250 1.250];
 timingParamters.tgRange = [-1.000 0];
 timingParamters.erpRange = [0 0.250];
 
-if  all(subjectIdx<7) % First Set of Recording- Nov-Dec 2021
+if  all(subjectIdx<8) % First Set of Recording- Nov-Dec 2021
     freqRanges{1} = [8 12];    % alpha
     freqRanges{2} = [20 66];   % gamma
     freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame

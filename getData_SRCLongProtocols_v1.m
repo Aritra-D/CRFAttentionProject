@@ -19,7 +19,7 @@ for iRef = 1:2
         folderSegment= fullfile(folderName,'segmentedData');
         folderLFP = fullfile(folderSegment,'LFP');
         
-        if iSub<7 % First Set of Recording- Nov-Dec 2021
+        if iSub<8 % First Set of Recording- Nov-Dec 2021
             freqRanges{1} = [8 12];    % alpha
             freqRanges{2} = [20 66];   % gamma
             freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
