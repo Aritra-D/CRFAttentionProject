@@ -56,10 +56,10 @@ clear index; index=44; deviceNames{index} = 'BP'; subjectNames{index} = 'SB'; ex
 clear index; index=45; deviceNames{index} = 'BP'; subjectNames{index} = 'SB'; expDates{index} = '280921'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
 clear index; index=46; deviceNames{index} = 'BP'; subjectNames{index} = 'SB'; expDates{index} = '280921'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
 
-clear index; index=47; deviceNames{index} = 'BP'; subjectNames{index} = 'SP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
-clear index; index=48; deviceNames{index} = 'BP'; subjectNames{index} = 'SP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
-clear index; index=49; deviceNames{index} = 'BP'; subjectNames{index} = 'SP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
-clear index; index=50; deviceNames{index} = 'BP'; subjectNames{index} = 'SP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+clear index; index=47; deviceNames{index} = 'BP'; subjectNames{index} = 'SSP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
+clear index; index=48; deviceNames{index} = 'BP'; subjectNames{index} = 'SSP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
+clear index; index=49; deviceNames{index} = 'BP'; subjectNames{index} = 'SSP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
+clear index; index=50; deviceNames{index} = 'BP'; subjectNames{index} = 'SSP'; expDates{index} = '290921'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
 
 clear index; index=51; deviceNames{index} = 'BP'; subjectNames{index} = 'SK'; expDates{index} = '011021'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Open
 clear index; index=52; deviceNames{index} = 'BP'; subjectNames{index} = 'SK'; expDates{index} = '011021'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
@@ -109,5 +109,78 @@ clear index; index=82; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; ex
 clear index; index=83; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % Eyes Closed
 clear index; index=84; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI
 clear index; index=85; deviceNames{index} = 'BP'; subjectNames{index} = 'AM'; expDates{index} = '230122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 4; % SF-ORI No InterStim
+
+clear index; index=86; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=87; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=88; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=89; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=90; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_005'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=91; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_006'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=92; deviceNames{index} = 'BP'; subjectNames{index} = 'SU'; expDates{index} = '260122'; protocolNames{index} = 'GRF_007'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=93; deviceNames{index} = 'BP'; subjectNames{index} = 'ArD'; expDates{index} = '290122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=94; deviceNames{index} = 'BP'; subjectNames{index} = 'ArD'; expDates{index} = '290122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=95; deviceNames{index} = 'BP'; subjectNames{index} = 'ArD'; expDates{index} = '290122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=96; deviceNames{index} = 'BP'; subjectNames{index} = 'ArD'; expDates{index} = '290122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=97; deviceNames{index} = 'BP'; subjectNames{index} = 'ArD'; expDates{index} = '290122'; protocolNames{index} = 'GRF_005'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=98; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=99; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=100; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=101; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=102; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_005'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=103; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_006'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=104; deviceNames{index} = 'BP'; subjectNames{index} = 'UG'; expDates{index} = '300122'; protocolNames{index} = 'GRF_007'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=105; deviceNames{index} = 'BP'; subjectNames{index} = 'SS'; expDates{index} = '310122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=106; deviceNames{index} = 'BP'; subjectNames{index} = 'SS'; expDates{index} = '310122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=107; deviceNames{index} = 'BP'; subjectNames{index} = 'SS'; expDates{index} = '310122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=108; deviceNames{index} = 'BP'; subjectNames{index} = 'SS'; expDates{index} = '310122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=109; deviceNames{index} = 'BP'; subjectNames{index} = 'SS'; expDates{index} = '310122'; protocolNames{index} = 'GRF_005'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=110; deviceNames{index} = 'BP'; subjectNames{index} = 'SNS'; expDates{index} = '060122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=111; deviceNames{index} = 'BP'; subjectNames{index} = 'SNS'; expDates{index} = '060122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=112; deviceNames{index} = 'BP'; subjectNames{index} = 'SNS'; expDates{index} = '060122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=113; deviceNames{index} = 'BP'; subjectNames{index} = 'SNS'; expDates{index} = '060122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=114; deviceNames{index} = 'BP'; subjectNames{index} = 'SG'; expDates{index} = '080222'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=115; deviceNames{index} = 'BP'; subjectNames{index} = 'SG'; expDates{index} = '080222'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=116; deviceNames{index} = 'BP'; subjectNames{index} = 'SG'; expDates{index} = '080222'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=117; deviceNames{index} = 'BP'; subjectNames{index} = 'SG'; expDates{index} = '080222'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=118; deviceNames{index} = 'BP'; subjectNames{index} = 'MK'; expDates{index} = '090222'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=119; deviceNames{index} = 'BP'; subjectNames{index} = 'MK'; expDates{index} = '090222'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=120; deviceNames{index} = 'BP'; subjectNames{index} = 'MK'; expDates{index} = '090222'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=121; deviceNames{index} = 'BP'; subjectNames{index} = 'MK'; expDates{index} = '090222'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=122; deviceNames{index} = 'BP'; subjectNames{index} = 'SR'; expDates{index} = '160222'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=123; deviceNames{index} = 'BP'; subjectNames{index} = 'SR'; expDates{index} = '160222'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=124; deviceNames{index} = 'BP'; subjectNames{index} = 'SR'; expDates{index} = '160222'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=125; deviceNames{index} = 'BP'; subjectNames{index} = 'SR'; expDates{index} = '160222'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=126; deviceNames{index} = 'BP'; subjectNames{index} = 'RG'; expDates{index} = '240222'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=127; deviceNames{index} = 'BP'; subjectNames{index} = 'RG'; expDates{index} = '240222'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=128; deviceNames{index} = 'BP'; subjectNames{index} = 'RG'; expDates{index} = '240222'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=129; deviceNames{index} = 'BP'; subjectNames{index} = 'RG'; expDates{index} = '240222'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=130; deviceNames{index} = 'BP'; subjectNames{index} = 'IJ'; expDates{index} = '260222'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=131; deviceNames{index} = 'BP'; subjectNames{index} = 'IJ'; expDates{index} = '260222'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=132; deviceNames{index} = 'BP'; subjectNames{index} = 'IJ'; expDates{index} = '260222'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=133; deviceNames{index} = 'BP'; subjectNames{index} = 'IJ'; expDates{index} = '260222'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=134; deviceNames{index} = 'BP'; subjectNames{index} = 'SM'; expDates{index} = '270122'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=135; deviceNames{index} = 'BP'; subjectNames{index} = 'SM'; expDates{index} = '270122'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=136; deviceNames{index} = 'BP'; subjectNames{index} = 'SM'; expDates{index} = '270122'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=137; deviceNames{index} = 'BP'; subjectNames{index} = 'SM'; expDates{index} = '270122'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=138; deviceNames{index} = 'BP'; subjectNames{index} = 'SJP'; expDates{index} = '050322'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=139; deviceNames{index} = 'BP'; subjectNames{index} = 'SJP'; expDates{index} = '050322'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=140; deviceNames{index} = 'BP'; subjectNames{index} = 'SJP'; expDates{index} = '050322'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=141; deviceNames{index} = 'BP'; subjectNames{index} = 'SJP'; expDates{index} = '050322'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+
+clear index; index=142; deviceNames{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'GRF_001'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=143; deviceNames{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'GRF_002'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=144; deviceNames{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'GRF_003'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
+clear index; index=145; deviceNames{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'GRF_004'; capLayouts{index} = 'actiCap64'; stimTypes{index} = 2; % Behavior + EEG
 
 end
