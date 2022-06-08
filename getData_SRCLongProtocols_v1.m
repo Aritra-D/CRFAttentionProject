@@ -213,10 +213,10 @@ for iRef = 1:2
                             psdTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG;
                             
                             for iFreqRange=1:length(freqRanges)
-                                if iFreqRange == 2||iFreqRange == 5||iFreqRange == 6
-                                    remove_NthHarmonicOnwards = 2;
-                                else
+                                if iFreqRange == 3||iFreqRange == 4
                                     remove_NthHarmonicOnwards = 3;
+                                else 
+                                    remove_NthHarmonicOnwards = 2;
                                 end
                                 deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
                                 badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
@@ -256,6 +256,14 @@ for iRef = 1:2
                             psdTG_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG_avg;
                             
                             for iFreqRange=1:length(freqRanges)
+                                if iFreqRange == 3||iFreqRange == 4
+                                    remove_NthHarmonicOnwards = 3;
+                                else 
+                                    remove_NthHarmonicOnwards = 2;
+                                end
+                                deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
+                                badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
+
                                 powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
                                 powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
                                 powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
@@ -402,8 +410,8 @@ end
 
 if tfLeft>0 && tfRight>0 % Flickering Stimuli
     badFreqs = [51:51:max(freqVals)];
-    tfHarmonics1 = [remove_NthHarmonicOnwards*tfLeft:tfLeft:max(freqVals)]; % remove 3rd SSVEP harmonic and beyond
-    tfHarmonics2 = [remove_NthHarmonicOnwards*tfRight:tfRight:max(freqVals)]; % remove 3rd SSVEP harmonic and beyond
+    tfHarmonics1 = [remove_NthHarmonicOnwards*tfLeft:tfLeft:max(freqVals)]; % remove nth SSVEP harmonic and beyond
+    tfHarmonics2 = [remove_NthHarmonicOnwards*tfRight:tfRight:max(freqVals)]; % remove nth SSVEP harmonic and beyond
     tfHarmonics = unique([tfHarmonics1 tfHarmonics2]);
 elseif tfLeft==0 && tfRight==0 % Static Stimuli
     badFreqs = 51:51:max(freqVals);
