@@ -123,10 +123,9 @@ for iRef = 1:2
                             stimNum(iSub,iProt,iTF) = length(goodPos);
                         end
                         
-                        %                             if strcmp(analysisType,'FFT')
-                        fftBL(iSub,iProt,iElec,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData(goodPos,blPos),[],2))))); %#ok<*NASGU,*AGROW>
-                        fftST(iSub,iProt,iElec,iTF,:) = squeeze(conv2Log(mean(abs(fft(x.analogData(goodPos,stPos),[],2)))));
-                        %                             elseif strcmp(analysisType,'MT')
+                        % fft computation
+                        fftBL(iSub,iProt,iElec,iTF,:) = squeeze(mean(abs(fft(x.analogData(goodPos,blPos),[],2)))); %#ok<*NASGU,*AGROW>
+                        fftST(iSub,iProt,iElec,iTF,:) = squeeze(mean(abs(fft(x.analogData(goodPos,stPos),[],2))));
                         
                         % Set up params for MT
                         params.tapers   = tapers;
@@ -149,20 +148,29 @@ for iRef = 1:2
                             freqVals = freqValsST;
                         end
                         
-                        psdBL(iSub,iProt,iElec,iTF,:) = conv2Log(tmpEBL);
-                        psdST(iSub,iProt,iElec,iTF,:) = conv2Log(tmpEST);
-                       
-                        if iTF ==1
-                            for i=1:2
-                                powerValsBL{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{i}));
-                                powerValsST{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{i}));
-                            end
-                        elseif iTF ==2
-                            for i=3:4
-                            powerValsBL{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{i}));
-                            powerValsST{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{i}));
-                            end
+                        if iTF == 1
+                            tfLeft = 0; tfRight = 0;
+                        elseif iTF == 2
+                            tfLeft = unique(freqRanges{3}/2); tfRight = unique(freqRanges{4}/2);
                         end
+
+                        
+                        psdBL(iSub,iProt,iElec,iTF,:) = tmpEBL;
+                        psdST(iSub,iProt,iElec,iTF,:) = tmpEST;
+                        
+                        for iFreqRange=1:length(freqRanges)
+                            if iFreqRange == 3||iFreqRange == 4
+                                remove_NthHarmonicOnwards = 3;
+                            else
+                                remove_NthHarmonicOnwards = 2;
+                            end
+                            deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
+                            badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
+                            
+                            powerValsBL{iFreqRange}(iSub,iProt,iTF,iElec) = getMeanEnergyForAnalysis(tmpEBL,freqVals,freqRanges{iFreqRange},badFreqPos);
+                            powerValsST{iFreqRange}(iSub,iProt,iTF,iElec) = getMeanEnergyForAnalysis(tmpEST,freqVals,freqRanges{iFreqRange},badFreqPos);
+                        end
+
                         
                         % computing time-frequency spectrum by
                         % multi-taper method (computed for both static
@@ -180,22 +188,22 @@ for iRef = 1:2
                         [tmpEBL_trialAvg,~] = mtspectrumc(mean(x.analogData(goodPos,blPos),1)',params);
                         [tmpEST_trialAvg,~] = mtspectrumc(mean(x.analogData(goodPos,stPos),1)',params);
                         
-                        psdBL_trialAvg(iSub,iProt,iElec,iTF,:) = conv2Log(tmpEBL_trialAvg);
-                        psdST_trialAvg(iSub,iProt,iElec,iTF,:) = conv2Log(tmpEST_trialAvg);
-
+                        psdBL_trialAvg(iSub,iProt,iElec,iTF,:) = tmpEBL_trialAvg;
+                        psdST_trialAvg(iSub,iProt,iElec,iTF,:) = tmpEST_trialAvg;
                         
-                        if iTF ==1
-                            for i=1:2
-                                powerValsBL_trialAvg{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEBL_trialAvg,freqVals,freqRanges{i}));
-                                powerValsST_trialAvg{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEST_trialAvg,freqVals,freqRanges{i}));
+                        for iFreqRange=1:length(freqRanges)
+                            if iFreqRange == 3||iFreqRange == 4
+                                remove_NthHarmonicOnwards = 3;
+                            else
+                                remove_NthHarmonicOnwards = 2;
                             end
-                        elseif iTF ==2
-                            for i=3:4
-                                powerValsBL_trialAvg{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEBL_trialAvg,freqVals,freqRanges{i}));
-                                powerValsST_trialAvg{i}(iSub,iProt,iElec) = conv2Log(getMeanEnergyForAnalysis(tmpEST_trialAvg,freqVals,freqRanges{i}));
-                            end
+                            deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
+                            badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
+                            
+                            powerValsBL_trialAvg{iFreqRange}(iSub,iProt,iTF,iElec) = getMeanEnergyForAnalysis(tmpEBL_trialAvg,freqVals,freqRanges{iFreqRange},badFreqPos);
+                            powerValsST_trialAvg{iFreqRange}(iSub,iProt,iTF,iElec) = getMeanEnergyForAnalysis(tmpEST_trialAvg,freqVals,freqRanges{iFreqRange},badFreqPos);
                         end
-                        
+
                         % TF
                         % computing time-frequency spectrum by
                         % multi-taper method (computed for both static
@@ -204,13 +212,11 @@ for iRef = 1:2
                         
                         timeVals_tf= tmpT_tf + timeVals(1);
                         energy_tf_trialAvg = conv2Log(tmpE_tf)';
-                        energyBL_tf_trialAvg = mean(energy_tf(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
+                        energyBL_tf_trialAvg = mean(energy_tf_trialAvg(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
                         
                         mEnergy_tf_trialAvg(iSub,iProt,iElec,iTF,:,:) = energy_tf_trialAvg;
                         mEnergyBL_tf_trialAvg(iSub,iProt,iElec,iTF,:,:) = repmat(energyBL_tf_trialAvg,1,length(timeVals_tf));
                         
-                        
-                        %                             end
                     end
                 end
             end
@@ -305,10 +311,42 @@ end
 % function Y = removeERP(X)
 % Y = X-repmat(mean(X,1),size(X,1),1);
 % end
+function badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_TFHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight)
+% During this Project, line Noise was at
+% 51 Hz for 1 Hz Freq Resolution and
+% 52 Hz for 2 Hz Freq Resolution
+
+if nargin<2
+    deltaF_LineNoise = 1; deltaF_TFHarmonics = 0; tfLeft = 0; tfRight = 0;
+end
+
+if tfLeft>0 && tfRight>0 % Flickering Stimuli
+    badFreqs = 51:51:max(freqVals);
+    tfHarmonics1 = remove_NthHarmonicOnwards*tfLeft:tfLeft:max(freqVals); % remove nth SSVEP harmonic and beyond
+    tfHarmonics2 = remove_NthHarmonicOnwards*tfRight:tfRight:max(freqVals); % remove nth SSVEP harmonic and beyond
+    tfHarmonics = unique([tfHarmonics1 tfHarmonics2]);
+elseif tfLeft==0 && tfRight==0 % Static Stimuli
+    badFreqs = 51:51:max(freqVals);
+end
+
+badFreqPos = [];  
+for i=1:length(badFreqs)
+    badFreqPos = cat(2,badFreqPos,intersect(find(freqVals>=badFreqs(i)-deltaF_LineNoise),find(freqVals<=badFreqs(i)+deltaF_LineNoise)));
+end
+
+if exist('tfHarmonics','var')
+    freqPosToRemove =  [];
+    for i=1:length(badFreqs)
+        freqPosToRemove = cat(2,freqPosToRemove,intersect(find(freqVals>=tfHarmonics(i)-deltaF_TFHarmonics),find(freqVals<=tfHarmonics(i)+deltaF_TFHarmonics)));
+    end
+    badFreqPos = unique([badFreqPos freqPosToRemove]);
+end
+end
+
 
 % Get MeanEnergy for different frequency bands
-function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange)
+function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange,badFreqPos)
 
-posToAverage = intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2)));
+posToAverage = setdiff(intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2))),badFreqPos);
 eValue   = sum(mEnergy(posToAverage));
 end

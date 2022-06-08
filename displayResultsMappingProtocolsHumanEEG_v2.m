@@ -1,11 +1,13 @@
-function displayResultsMappingProtocolsHumanEEG_v2(subjectName,expDate,protocolIDs,folderSourceString,gridType,sideChoice,analysisType,tapers_MT,stimType,plotPSDFlag,displayDeltaPSDFlag)
+function displayResultsMappingProtocolsHumanEEG_v2...
+    (subjectName,expDate,protocolIDs,folderSourceString,gridType,...
+    sideChoice,analysisType,tapers_MT,stimType,plotPSDFlag,displayDeltaPSDFlag)
 
-if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
+if ~exist('folderSourceString','var');  folderSourceString='E:\data\human\SFOri-Mapping';        end
 if ~exist('gridType','var');            gridType='EEG';      end
 
 close all;
 
-[subjectNames_all,expDates_all,protocolNames_all,~,~,~] = allProtocolsCRFAttentionEEG;
+[subjectNames_all,expDates_all,protocolNames_all,~,~,~] = allProtocolsCRFAttentionEEGv1;
 % protocolIDs = find(strcmp(subjectName,subjectNames_all)& strcmp(expDate,expDates_all)); % only SubjectName is
 % 
 % expDates = expDates_all(protocolIDs(initMappingProtocolIndex:initMappingProtocolIndex+3));
@@ -124,7 +126,7 @@ for iRefScheme = 1:2
 
                 
             elseif sideChoice == 1
-                EEGChannelsLeft = [24 29 57 61]; % Left Photodiode elec 65
+                EEGChannelsLeft = 65;%[24 29 57 61]; % Left Photodiode elec 65
                 EEGChannelsStored{1} = EEGChannelsLeft;
                 
                 bipolarEEGChannelsStored(1,:) = [61 61 62];
@@ -132,7 +134,7 @@ for iRefScheme = 1:2
 
                 
             elseif sideChoice == 2
-                EEGChannelsRight = [26 31 58 63]; % Right Photodiode elec 66
+                EEGChannelsRight = 66; %[26 31 58 63]; % Right Photodiode elec 66
                 EEGChannelsStored{1} = EEGChannelsRight;
                 
                 bipolarEEGChannelsStored(1,:) = [63 63 62];

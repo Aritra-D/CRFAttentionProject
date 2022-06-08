@@ -4,12 +4,12 @@ if ~exist('gridType','var');                            gridType = 'EEG'; end
 
 % FolderSourceString for extracted dataset
 if strcmp(getenv('computername'),'RAYLABPC-ARITRA') || strcmp(getenv('username'),'RayLabPC-Aritra')
-    dataFolderSourceString = 'E:\';
+    dataFolderSourceString = 'E:\data\human\SFOri-Mapping';
 else
     dataFolderSourceString = 'M:\';
 end
 
-[allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType]);
+[allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType 'v1']);
 
 % stimList = cell(1,4);
 
@@ -19,7 +19,7 @@ if strcmp(protocolType, 'Mapping-Diagonal')
     protocolList{3} = 127:130; % Liza  LK
     protocolList{4} = 141:144; % Srishty SA
     protocolList{5} = 153:156; % Sunreeta SB
-    protocolList{6} = 167:170; % Surya    SP
+    protocolList{6} = 167:170; % Surya    SSP
     protocolList{7} = 181:184; % Saurabh  SK
     protocolList{8} = 195:198; % Divya   DG
     protocolList{9} = 209:212; % Nilanjana NN
