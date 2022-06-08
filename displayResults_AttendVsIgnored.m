@@ -1,4 +1,6 @@
-function displayResults_AttendVsIgnored(protocolType,analysisMethodFlag,subjectIdx,timeEpoch,eotCodeIdx,removeBadElectrodeData,topoplot_style,colorMap)
+function displayResults_AttendVsIgnored(protocolType,analysisMethodFlag,...
+    subjectIdx,timeEpoch,eotCodeIdx,removeBadElectrodeData,...
+    plotBaselineSubtractedPowerFlag,topoplot_style,colorMap)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
@@ -43,10 +45,16 @@ if analysisMethodFlag % Replacing the PSD and power Values for Flickering condit
     %     clear energyData.dataBL energyData.dataST energyData.dataTG
     %     clear energyData.analysisDataBL energyData.analysisDataST energyData.analysisDataTG
     for iRef = 1:2
-        energyData.dataBL{iRef}(:,:,:,:,2:3,:) = energyData.dataBL_trialAvg{iRef}(:,:,:,:,2:3,:);
-        energyData.dataST{iRef}(:,:,:,:,2:3,:) = energyData.dataST_trialAvg{iRef}(:,:,:,:,2:3,:);
-        energyData.dataTG{iRef}(:,:,:,:,2:3,:) = energyData.dataTG_trialAvg{iRef}(:,:,:,:,2:3,:);
+        energyData.dataBL{iRef}(:,:,:,:,2,:) = energyData.dataBL_trialAvg{iRef}(:,:,:,:,2,:);
+        energyData.dataST{iRef}(:,:,:,:,2,:) = energyData.dataST_trialAvg{iRef}(:,:,:,:,2,:);
+        energyData.dataTG{iRef}(:,:,:,:,2,:) = energyData.dataTG_trialAvg{iRef}(:,:,:,:,2,:);
+        energyData.dataBL{iRef}(:,:,:,:,3,:) = energyData.dataBL_trialAvg{iRef}(:,:,:,:,3,:);
+        energyData.dataST{iRef}(:,:,:,:,3,:) = energyData.dataST_trialAvg{iRef}(:,:,:,:,3,:);
+        energyData.dataTG{iRef}(:,:,:,:,3,:) = energyData.dataTG_trialAvg{iRef}(:,:,:,:,3,:);
         
+        energyData.analysisDataBL{iRef}{1,1} = energyData.analysisDataBL_trialAvg{iRef}{1,1};
+        energyData.analysisDataST{iRef}{1,1} = energyData.analysisDataST_trialAvg{iRef}{1,1};
+        energyData.analysisDataTG{iRef}{1,1} = energyData.analysisDataTG_trialAvg{iRef}{1,1};
         energyData.analysisDataBL{iRef}{1,3} = energyData.analysisDataBL_trialAvg{iRef}{1,3};
         energyData.analysisDataST{iRef}{1,3} = energyData.analysisDataST_trialAvg{iRef}{1,3};
         energyData.analysisDataTG{iRef}{1,3} = energyData.analysisDataTG_trialAvg{iRef}{1,3};
@@ -94,13 +102,23 @@ set(hFig1,'units','normalized','outerPosition',[0 0 1 1]);
 hPlot1 = getPlotHandles(5,3,[0.1 0.05, 0.5 0.85],0.02,0.04,0);
 hPlot2 = getPlotHandles(3,1,[0.65 0.07, 0.3 0.88],0.02,0.1,0);
 
-cLimsRaw1 = [-1 2];
-cLimsRaw2 = [-1 2];
-cLimsRaw3 = [-1 2];
-
-cLimsDiff1 = [-1 2];
-cLimsDiff2 = [-1 2];
-cLimsDiff3 = [-1 2];
+if plotBaselineSubtractedPowerFlag
+    cLimsRaw1 = [-2 2];
+    cLimsRaw2 = [-2 2];
+    cLimsRaw3 = [-2 2];
+    
+    cLimsDiff1 = [-1 2];
+    cLimsDiff2 = [-1 2];
+    cLimsDiff3 = [-1 2];
+else
+    cLimsRaw1 = [-1 2];
+    cLimsRaw2 = [-1 2];
+    cLimsRaw3 = [-1 2];
+    
+    cLimsDiff1 = [-1 2];
+    cLimsDiff2 = [-1 2];
+    cLimsDiff3 = [-1 2];
+end
 
 % rhythmIDs = [1 5 6];
 fontSizeLarge = 14; tickLengthMedium = [0.025 0];
@@ -130,18 +148,26 @@ chanlocs_Bipolar = cL_Bipolar.eloc;
 
 if strcmp(timeEpoch,'StimOnset')
     powerData = energyData.analysisDataST;
+    powerDataBL = energyData.analysisDataBL;
     ERPData = erpData.dataST;
     psdData = energyData.dataST;
+    
+    psdDataBL = energyData.dataBL;
     rmsERPData = erpData.analysisData_ST;
 elseif strcmp(timeEpoch,'PreTarget')
     powerData = energyData.analysisDataTG;
+    powerDataBL = energyData.analysisDataBL;
     ERPData = erpData.dataTG;
     psdData = energyData.dataTG;
+    psdDataBL = energyData.dataBL;
     rmsERPData = erpData.analysisData_TG;
 end
 
-topoPlotStyle = 'LeftVsRight'; rhythmIDs = [1 5 6];
-[attData_Topo,ignData_Topo,diffData_Topo]= getAttendVsIgnored_TopoPlotPowerData_StaticStimuli(powerData,rhythmIDs,topoPlotStyle,subjectIdx,eotCodeIdx,nanFlag); %#ok<*ASGLU>
+topoPlotType = 'LeftVsRight'; rhythmIDs = [1 5 6];
+[attData_Topo,ignData_Topo,diffData_Topo]= getAttendVsIgnored_TopoPlotPowerData_StaticStimuli...
+    (powerData,rhythmIDs,topoPlotType,subjectIdx,eotCodeIdx,nanFlag); %#ok<*ASGLU>
+[attDataBL_Topo,ignDataBL_Topo,diffDataBL_Topo]= getAttendVsIgnored_TopoPlotPowerData_StaticStimuli...
+    (powerDataBL,rhythmIDs,topoPlotType,subjectIdx,eotCodeIdx,nanFlag); %#ok<*ASGLU>
 
 figure(1)
 % TopoPlots for Static Stimuli
@@ -158,29 +184,41 @@ switch iPlot
     case 5
         chanlocs = chanlocs_Bipolar; showElecIDs = [showElecsBipolarLeft showElecsBipolarRight];
 end
+
+if plotBaselineSubtractedPowerFlag
+    topoPlot_Attended =  10*(attData_Topo{iPlot}-ignDataBL_Topo{iPlot});
+    topoPlot_Ignored = 10*(ignData_Topo{iPlot}-ignDataBL_Topo{iPlot});
+    topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored;
+else
     topoPlot_Attended =  attData_Topo{iPlot};
     topoPlot_Ignored = ignData_Topo{iPlot};
     topoPlot_AttendedMinusIgnored = 10*(topoPlot_Attended-topoPlot_Ignored);
+end
     
     
     subplot(hPlot1(iPlot,1)); cla; hold on;
-    topoplot_murty(topoPlot_Attended,chanlocs_Unipolar,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_Attended); caxis(cLimsRaw1);colorbar;
+    topoplot_murty(topoPlot_Attended,chanlocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_Attended); caxis(cLimsRaw1);colorbar;
     topoplot_murty([],chanlocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecIDs);
     
     subplot(hPlot1(iPlot,2)); cla; hold on;
-    topoplot_murty(topoPlot_Ignored,chanlocs_Unipolar,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_Ignored); caxis(cLimsRaw1);colorbar;
+    topoplot_murty(topoPlot_Ignored,chanlocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_Ignored); caxis(cLimsRaw1);colorbar;
     topoplot_murty([],chanlocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecIDs);
 
     subplot(hPlot1(iPlot,3)); cla; hold on;
-    topoplot_murty(topoPlot_AttendedMinusIgnored,chanlocs_Unipolar,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_AttendedMinusIgnored); caxis(cLimsDiff1);colorbar;
+    topoplot_murty(topoPlot_AttendedMinusIgnored,chanlocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlot_AttendedMinusIgnored); caxis(cLimsDiff1);colorbar;
     topoplot_murty([],chanlocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecIDs);
 
 end
 
 lineWidth = 1.5;
 refType = 1;
-[attData_erp,ignData_erp,~]= getAttendVsIgnoredCombinedData_StaticStimuli(ERPData,refType,topoPlotStyle,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
-[attData_psd,ignData_psd,~]= getAttendVsIgnoredCombinedData_StaticStimuli(psdData,refType,topoPlotStyle,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+topoPlotType = 'BothSides';
+[attData_erp,ignData_erp,~]= getAttendVsIgnoredCombinedData_StaticStimuli...
+    (ERPData,refType,topoPlotType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+[attData_psd,ignData_psd,~]= getAttendVsIgnoredCombinedData_StaticStimuli...
+    (psdData,refType,topoPlotType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+[attDataBL_psd,ignDataBL_psd,~]= getAttendVsIgnoredCombinedData_StaticStimuli...
+    (psdDataBL,refType,topoPlotType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
 
 plot(hPlot2(1),erpData.timeVals,mean(attData_erp,1,nanFlag),'r'); hold(hPlot2(1),'on');
 plot(hPlot2(1),erpData.timeVals,mean(ignData_erp,1,nanFlag),'b');
@@ -189,11 +227,18 @@ xlim(hPlot2(1),[-1.5 1.5]);
 deltaPSD = 10*(log10(attData_psd)-log10(ignData_psd));
 plot(hPlot2(2),energyData.freqVals,mean(log10(attData_psd),1,nanFlag),'r','LineWidth',lineWidth); hold(hPlot2(2),'on');
 plot(hPlot2(2),energyData.freqVals,mean(log10(ignData_psd),1,nanFlag),'b','LineWidth',lineWidth);
+plot(hPlot2(2),energyData.freqVals,mean(log10(attDataBL_psd),1,nanFlag),'k','LineWidth',lineWidth);
+plot(hPlot2(2),energyData.freqVals,mean(log10(ignDataBL_psd),1,nanFlag),'--k','LineWidth',lineWidth);
 plot(hPlot2(2),energyData.freqVals,mean(deltaPSD,1,nanFlag),'k','LineWidth',lineWidth);
 xlim(hPlot2(2),[0 100]);
 
+topoPlotType = 'BothSides';
 rhythmIDs = [1 3 4 5 6];
-[attAnalysisData,ignAnalysisData]= getAttendVsIgnored_BarPlotData_StaticStimuli(rmsERPData,powerData,topoPlotStyle,rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+[attAnalysisData,ignAnalysisData]= getAttendVsIgnored_BarPlotData_StaticStimuli...
+    (rmsERPData,powerData,topoPlotType,rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+[attAnalysisDataBL,ignAnalysisDataBL]= getAttendVsIgnored_BarPlotData_StaticStimuli...
+    (rmsERPData,powerDataBL,topoPlotType,rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+
 colors = {'y','k',[0.4940 0.1840 0.5560],'m',[0.4940 0.1840 0.5560],'m','g','c'};
 
 % attAnalysisData{7} = [];
@@ -207,11 +252,17 @@ for iBar = 1:length(attAnalysisData)-2
         mBar = mean(diffData,1,nanFlag);
         errorBar = std(diffData,[],1,nanFlag)./sqrt(length(diffData));
     else
-        attData = log10(attAnalysisData{iBar});
-        ignData = log10(ignAnalysisData{iBar});
+        if plotBaselineSubtractedPowerFlag
+            attData = log10(attAnalysisData{iBar})-log10(ignAnalysisDataBL{iBar});
+            ignData = log10(ignAnalysisData{iBar})-log10(ignAnalysisDataBL{iBar});
+        else
+            attData = log10(attAnalysisData{iBar});
+            ignData = log10(ignAnalysisData{iBar});
+        end
         diffData = 10*(attData-ignData); %dB
         mBar = mean(diffData,1,nanFlag);
         errorBar = std(diffData,[],1,nanFlag)./sqrt(length(diffData));
+
     end
     
 
@@ -268,20 +319,30 @@ set(hPlot2(3),'xTick',1:6,'xTickLabel',Datalabels,'XTickLabelRotation',30);
 
 hFig2 = figure(2); colormap(colorMap)
 set(hFig2,'units','normalized','outerPosition',[0 0 1 1]);
-hPlot1 = getPlotHandles(2,3,[0.07 0.52, 0.45 0.42],0.02,0.02,0);
-hPlot2 = getPlotHandles(2,3,[0.07 0.02, 0.45 0.42],0.02,0.02,0);
-hPlot3 = getPlotHandles(1,3,[0.56 0.58, 0.42 0.3],0.04,0.02,0);
-hPlot4 = getPlotHandles(1,3,[0.56 0.08, 0.42 0.3],0.04,0.02,0);
+hPlot1 = getPlotHandles(2,3,[0.07 0.5, 0.45 0.42],0.02,0.02,0);
+hPlot2 = getPlotHandles(2,3,[0.07 0.01, 0.45 0.42],0.02,0.02,0);
+hPlot3 = getPlotHandles(1,3,[0.56 0.56, 0.42 0.3],0.04,0.02,0);
+hPlot4 = getPlotHandles(1,3,[0.56 0.07, 0.42 0.3],0.04,0.02,0);
 
 
 % SSVEP Topoplots (Figure 2)
 rhythmIDs = [3 4]; % 3- SSVEP Response at 24 Hz; 4- SSVEP Response at 32 Hz
 if analysisMethodFlag
+   if plotBaselineSubtractedPowerFlag
+    cLimsSSVEPRaw = [-1 10];
+    cLimsSSVEPDiff = [-2 5];
+   else
     cLimsSSVEPRaw = [-3 -1];
-    cLimsSSVEPDiff = [-3 5];
+    cLimsSSVEPDiff = [-2 5];
+   end
 else
+   if plotBaselineSubtractedPowerFlag
+    cLimsSSVEPRaw = [-1 5];
+    cLimsSSVEPDiff = [-2 5];
+   else
     cLimsSSVEPRaw = [-2 1];
     cLimsSSVEPDiff = [-1 1];
+   end
 end
 showAllElecs = 1:64;
 
@@ -291,29 +352,59 @@ refType = 1;
     getAttendVsIgnored_TopoPlotPowerData_FlickerStimuli...
     (powerData,rhythmIDs,refType,subjectIdx,eotCodeIdx,nanFlag);
 
+[attDataBL_Topo,ignDataBL_Topo,diffDataBL_Topo]= ...
+    getAttendVsIgnored_TopoPlotPowerData_FlickerStimuli...
+    (powerDataBL,rhythmIDs,refType,subjectIdx,eotCodeIdx,nanFlag);
+
 figure(2)
 for iPlot = 1:4
     switch iPlot
         case 1
-            topoPlot_Attended =  attData_Topo{2,1};
-            topoPlot_Ignored = ignData_Topo{2,1};
-            topoPlot_AttendedMinusIgnored = 10*(diffData_Topo{2,1});
+            if plotBaselineSubtractedPowerFlag
+                topoPlot_Attended =  10*(attData_Topo{2,1}-ignDataBL_Topo{2,1});
+                topoPlot_Ignored = 10*(ignData_Topo{2,1}-ignDataBL_Topo{2,1});
+                topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored;% 10*(diffData_Topo{2,1}-diffDataBL_Topo{2,1});
+            else
+                topoPlot_Attended =  attData_Topo{2,1};
+                topoPlot_Ignored = ignData_Topo{2,1};
+                topoPlot_AttendedMinusIgnored = 10*(topoPlot_Attended-topoPlot_Ignored); % 10*(diffData_Topo{2,1});
+            end
             hTopo = hPlot1; plotID = 1; showElecIDs = showElecsUnipolarRight;
         case 2
-            topoPlot_Attended =  attData_Topo{1,1};
-            topoPlot_Ignored = ignData_Topo{1,1};
-            topoPlot_AttendedMinusIgnored = 10*(diffData_Topo{1,1});
+            if plotBaselineSubtractedPowerFlag
+                topoPlot_Attended =  10*(attData_Topo{1,1}-ignDataBL_Topo{1,1});
+                topoPlot_Ignored = 10*(ignData_Topo{1,1}-ignDataBL_Topo{1,1});
+                topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored; %10*(diffData_Topo{1,1}-diffDataBL_Topo{1,1});
+            else
+                topoPlot_Attended =  attData_Topo{1,1};
+                topoPlot_Ignored = ignData_Topo{1,1};
+                topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored; %10*(diffData_Topo{1,1});
+            end
             hTopo = hPlot1; plotID = 2; showElecIDs = showElecsUnipolarLeft;
         case 3
-            topoPlot_Attended =  attData_Topo{2,2};
-            topoPlot_Ignored = ignData_Topo{2,2};
-            topoPlot_AttendedMinusIgnored = 10*(diffData_Topo{2,2});
+            if plotBaselineSubtractedPowerFlag
+                topoPlot_Attended = 10*(attData_Topo{2,2}-ignDataBL_Topo{2,2});
+                topoPlot_Ignored = 10*(ignData_Topo{2,2}-ignDataBL_Topo{2,2});
+                topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored; %10*(diffData_Topo{2,2}-diffDataBL_Topo{2,2});
+            else
+                topoPlot_Attended =  attData_Topo{2,2};
+                topoPlot_Ignored = ignData_Topo{2,2};
+                topoPlot_AttendedMinusIgnored = 10*(topoPlot_Attended-topoPlot_Ignored); %10*(diffData_Topo{2,2});
+            end
             hTopo = hPlot2; plotID = 1; showElecIDs = showElecsUnipolarRight;
+
         case 4
-            topoPlot_Attended =  attData_Topo{1,2};
-            topoPlot_Ignored = ignData_Topo{1,2};
-            topoPlot_AttendedMinusIgnored = 10*(diffData_Topo{1,2});
+            if plotBaselineSubtractedPowerFlag
+                topoPlot_Attended = 10*(attData_Topo{1,2}-ignDataBL_Topo{1,2});
+                topoPlot_Ignored = 10*(ignData_Topo{1,2}-ignDataBL_Topo{1,2});
+                topoPlot_AttendedMinusIgnored = topoPlot_Attended-topoPlot_Ignored; %10*(diffData_Topo{1,2}-diffDataBL_Topo{1,2});
+            else
+                topoPlot_Attended =  attData_Topo{1,2};
+                topoPlot_Ignored = ignData_Topo{1,2};
+                topoPlot_AttendedMinusIgnored = 10*(topoPlot_Attended-topoPlot_Ignored); %10*(diffData_Topo{1,2});
+            end
             hTopo = hPlot2; plotID = 2; showElecIDs = showElecsUnipolarLeft;
+
     end
 
     subplot(hTopo(plotID,1)); cla; hold on;
@@ -331,21 +422,29 @@ for iPlot = 1:4
 end
 
 % get ERP Data for Attended and Ignored Conditions for Flicker Stimuli
-[attData_erp,ignData_erp,~]= getAttendVsIgnoredCombinedData_FlickerStimuli(ERPData,refType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsLeft);
+[attData_erp,ignData_erp,~]= getAttendVsIgnoredCombinedData_FlickerStimuli...
+    (ERPData,refType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
 % get PSD Data for Attended and Ignored Conditions for Flicker Stimuli
-[attData_psd,ignData_psd,~]= getAttendVsIgnoredCombinedData_FlickerStimuli(psdData,refType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsLeft);
+[attData_psd,ignData_psd,~]= getAttendVsIgnoredCombinedData_FlickerStimuli...
+    (psdData,refType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+[attDataBL_psd,ignDataBL_psd,~]= getAttendVsIgnoredCombinedData_FlickerStimuli...
+    (psdDataBL,refType,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
 
 for iPlot = 1:2
     switch iPlot
         case 1; erp_Att = mean(attData_erp{1},1,nanFlag); 
                 erp_Ign = mean(ignData_erp{1},1,nanFlag); 
                 psd_Att = mean(log10(attData_psd{1}),1,nanFlag); 
-                psd_Ign = mean(log10(ignData_psd{1}),1,nanFlag); 
+                psd_Ign = mean(log10(ignData_psd{1}),1,nanFlag);
+                psdBL_Att = mean(log10(attDataBL_psd{1}),1,nanFlag);
+                psdBL_Ign = mean(log10(ignDataBL_psd{1}),1,nanFlag);
                 diffPSD = 10*(psd_Att-psd_Ign); hPlot = hPlot3;
         case 2; erp_Att = mean(attData_erp{2},1,nanFlag); 
                 erp_Ign = mean(ignData_erp{2},1,nanFlag); 
                 psd_Att = mean(log10(attData_psd{2}),1,nanFlag); 
-                psd_Ign = mean(log10(ignData_psd{2}),1,nanFlag); 
+                psd_Ign = mean(log10(ignData_psd{2}),1,nanFlag);
+                psdBL_Att = mean(log10(attDataBL_psd{2}),1,nanFlag);
+                psdBL_Ign = mean(log10(ignDataBL_psd{2}),1,nanFlag);
                 diffPSD = 10*(psd_Att-psd_Ign); hPlot = hPlot4;
     end
     
@@ -354,7 +453,9 @@ for iPlot = 1:2
    xlim(hPlot(1,1),[-1.5 1.5])
    
    plot(hPlot(1,2),energyData.freqVals,psd_Att,'r'); hold(hPlot(1,2),'on');
-   plot(hPlot(1,2),energyData.freqVals,psd_Ign,'b'); 
+   plot(hPlot(1,2),energyData.freqVals,psd_Ign,'b');
+   plot(hPlot(1,2),energyData.freqVals,psdBL_Att,'k'); 
+   plot(hPlot(1,2),energyData.freqVals,psdBL_Ign,'--k'); 
    plot(hPlot(1,2),energyData.freqVals,diffPSD,'k'); xlim(hPlot(1,2),[0 50])
 end
 
@@ -366,7 +467,11 @@ colors = {'y','k',[0.4940 0.1840 0.5560],'m',[0.4940 0.1840 0.5560],'m','g','c'}
 
 [attAnalysisData,ignAnalysisData]= ...
     getAttendVsIgnored_BarPlotData_FlickerStimuli(rmsERPData,powerData,....
-    rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsLeft);
+    rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
+
+[attAnalysisDataBL,ignAnalysisDataBL]= ...
+    getAttendVsIgnored_BarPlotData_FlickerStimuli(rmsERPData,powerDataBL,....
+    rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,showElecsLeft,showElecsRight);
 
 for iPlot = 1:2
     switch iPlot
@@ -383,8 +488,13 @@ for iPlot = 1:2
             mBar = mean(diffData,1,nanFlag);
             errorBar = std(diffData,[],1,nanFlag)./sqrt(length(diffData));
         else
-            attData = log10(attAnalysisData{iPlot}{iBar});
-            ignData = log10(ignAnalysisData{iPlot}{iBar});
+            if plotBaselineSubtractedPowerFlag
+                attData = log10(attAnalysisData{iPlot}{iBar})-log10(ignAnalysisDataBL{iPlot}{iBar});
+                ignData = log10(ignAnalysisData{iPlot}{iBar})-log10(ignAnalysisDataBL{iPlot}{iBar});
+            else
+                attData = log10(attAnalysisData{iPlot}{iBar});
+                ignData = log10(ignAnalysisData{iPlot}{iBar});
+            end
             diffData = 10*(attData-ignData); %dB
             mBar = mean(diffData,1,nanFlag);
             errorBar = std(diffData,[],1,nanFlag)./sqrt(length(diffData));
@@ -403,44 +513,139 @@ for iPlot = 1:2
     
 end
 
-AttendPlotPos = get(hPlot1(1,1),'Position');
+
+
+textStartPosGapFromMidline = 0.02;
+textWidth = 0.15; textHeight = 0.025;
+textGap = 0.26;
+topoPlotLabels = {'Attended','Ignored','Attended - Ignored'};
+
+for i=1:length(topoPlotLabels)
+AttendPlotPos = get(hPlot1(1,i),'Position');
 AttendPlotMidline = AttendPlotPos(1)+ AttendPlotPos(3)/2;
-stimDiskDistanceFromMidline = 0.0275;
-textWidth = 0.1;
+annotation('textbox',[AttendPlotPos(1)-textStartPosGapFromMidline AttendPlotPos(2)+textGap textWidth textHeight],...
+    'EdgeColor','none','String',topoPlotLabels{i},'fontSize',14,'fontWeight','bold','FitBoxToText','on',...
+    'HorizontalAlignment','center');
+end
 
-annotation('textbox',[AttendPlotMidline-stimDiskDistanceFromMidline AttendPlotPos(2)+0.24 0.1 0.025],'EdgeColor','none','String','Attended','fontSize',14,'fontWeight','bold');
-annotation('textbox',[0.18+ 0.115 0.97 0.1 0.0241],'EdgeColor','none','String','Ignored','fontSize',14,'fontWeight','bold');
-annotation('textbox',[0.33+ 0.115 0.97 0.3 0.0241],'EdgeColor','none','String','Attended - Ignored','fontSize',14,'fontWeight','bold');
+stringLabels1 = {'SSVEP Response' 'at 24 Hz'};
+stringLabels2 = {'SSVEP Response' 'at 32 Hz'};
 
-% Attend Left; Left: 12 Hz; Right: 16 Hz;
-elpsL = annotation('ellipse',[0.1220 0.9 0.0216 0.0194]); elpsR = annotation('ellipse',[0.1638 0.9 0.0216 0.0194]);
-elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
-annotation('textbox',[0.1172 0.9266 0.04 0.0241],'EdgeColor','none','String','12 Hz','fontSize',12);
-annotation('textbox',[0.1590 0.9266 0.04 0.0241],'EdgeColor','none','String','16 Hz','fontSize',12);
+for i=1:2
+annotation('textbox',[0.002 0.862-(i-1)*0.225 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',stringLabels1,'fontSize',14);
+annotation('textbox',[0.002 0.36-(i-1)*0.225 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',stringLabels2,'fontSize',14);
+end
 
-% Attend Right; Left: 12 Hz; Right: 16 Hz;
-elpsL = annotation('ellipse',[0.18+0.1220 0.9 0.0216 0.0194]); elpsR = annotation('ellipse',[0.18+0.1638 0.9 0.0216 0.0194]);
-elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
-annotation('textbox',[0.18+0.1172 0.9266 0.04 0.0241],'EdgeColor','none','String','12 Hz','fontSize',12);
-annotation('textbox',[0.18+0.1590 0.9266 0.04 0.0241],'EdgeColor','none','String','16 Hz','fontSize',12);
+stimDiskDistanceFromMidline = 0.01;
+textStartPosGapFromMidline = 0.001;
 
-% Attend Left; Left: 16 Hz; Right: 12 Hz;
-elpsL = annotation('ellipse',[0.1220 0.9-0.448 0.0216 0.0194]); elpsR = annotation('ellipse',[0.1638 0.9-0.448 0.0216 0.0194]);
-elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
-annotation('textbox',[0.1172 0.9266-0.448 0.04 0.0241],'EdgeColor','none','String','16 Hz','fontSize',12);
-annotation('textbox',[0.1590 0.9266-0.448 0.04 0.0241],'EdgeColor','none','String','12 Hz','fontSize',12);
-
-% Attend Right; Left: 16 Hz; Right: 12 Hz;
-elpsL = annotation('ellipse',[0.18+0.1220 0.9-0.448 0.0216 0.0194]); elpsR = annotation('ellipse',[0.18+0.1638 0.9-0.448 0.0216 0.0194]);
-elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
-annotation('textbox',[0.18+0.1172 0.9266-0.448 0.04 0.0241],'EdgeColor','none','String','16 Hz','fontSize',12);
-annotation('textbox',[0.18+0.1590 0.9266-0.448 0.04 0.0241],'EdgeColor','none','String','12 Hz','fontSize',12);
+ellipseYGap = 0.195;
+ellipseWidth = 0.018;
+ellipseHeight = 0.015;
+textYGap = 0.205;
+textWidth = 0.04;
+textHeight = 0.0241;
 
 
-annotation('textbox',[0.03 0.825 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',{'SSVEP Response' 'at 24 Hz'},'fontSize',14);
-annotation('textbox',[0.03 0.825-0.225 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',{'SSVEP Response' 'at 32 Hz'},'fontSize',14);
-annotation('textbox',[0.03 0.825-2*0.225 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',{'SSVEP Response' 'at 24 Hz'},'fontSize',14);
-annotation('textbox',[0.03 0.825-3*0.225 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',{'SSVEP Response' 'at 32 Hz'},'fontSize',14);
+% Stim TF: Left 12 Hz; Right 16 Hz; Attended Left: 12 Hz; Ignored Left: 12 Hz;
+for i=1:2
+AttendPlotPos = get(hPlot1(1,i),'Position');
+AttendPlotMidline = AttendPlotPos(1)+ AttendPlotPos(3)/2;
+% YLine = annotation('line',[AttendPlotMidline AttendPlotMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline- stimDiskDistanceFromMidline AttendPlotMidline- stimDiskDistanceFromMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline+ stimDiskDistanceFromMidline AttendPlotMidline+ stimDiskDistanceFromMidline],[0.5 1]);
+elpsL = annotation('ellipse',[AttendPlotMidline-ellipseWidth- stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight],'units','normalized'); 
+elpsR = annotation('ellipse',[AttendPlotMidline + stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight]);
+
+if i==1
+    elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
+elseif i==2
+    elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
+end
+
+annotation('textbox',[AttendPlotMidline-(textWidth+textStartPosGapFromMidline) AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','12 Hz','fontSize',10,'EdgeColor','none','FitBoxToText','on',...
+    'HorizontalAlignment','center');
+
+annotation('textbox',[AttendPlotMidline+textStartPosGapFromMidline AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','16 Hz','fontSize',10,...
+    'EdgeColor','none','FitBoxToText','on','HorizontalAlignment','center');
+end
+
+% Stim TF: Left 16 Hz; Right 12 Hz; Attended Right: 12 Hz; Ignored Right: 12 Hz;
+for i=1:2
+AttendPlotPos = get(hPlot1(2,i),'Position');
+AttendPlotMidline = AttendPlotPos(1)+ AttendPlotPos(3)/2;
+% YLine = annotation('line',[AttendPlotMidline AttendPlotMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline- stimDiskDistanceFromMidline AttendPlotMidline- stimDiskDistanceFromMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline+ stimDiskDistanceFromMidline AttendPlotMidline+ stimDiskDistanceFromMidline],[0.5 1]);
+elpsL = annotation('ellipse',[AttendPlotMidline-ellipseWidth- stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight],'units','normalized'); 
+elpsR = annotation('ellipse',[AttendPlotMidline + stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight]);
+
+if i==1
+    elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
+elseif i==2
+    elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
+end
+
+annotation('textbox',[AttendPlotMidline-(textWidth+textStartPosGapFromMidline) AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','16 Hz','fontSize',10,'EdgeColor','none','FitBoxToText','on',...
+    'HorizontalAlignment','center');
+
+annotation('textbox',[AttendPlotMidline+textStartPosGapFromMidline AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','12 Hz','fontSize',10,...
+    'EdgeColor','none','FitBoxToText','on','HorizontalAlignment','center');
+end
+
+% Stim TF: Left 12 Hz; Right 16 Hz; Attended Right: 16 Hz; Ignored Right: 16 Hz;
+for i=1:2
+AttendPlotPos = get(hPlot2(1,i),'Position');
+AttendPlotMidline = AttendPlotPos(1)+ AttendPlotPos(3)/2;
+% YLine = annotation('line',[AttendPlotMidline AttendPlotMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline- stimDiskDistanceFromMidline AttendPlotMidline- stimDiskDistanceFromMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline+ stimDiskDistanceFromMidline AttendPlotMidline+ stimDiskDistanceFromMidline],[0.5 1]);
+elpsL = annotation('ellipse',[AttendPlotMidline-ellipseWidth- stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight],'units','normalized'); 
+elpsR = annotation('ellipse',[AttendPlotMidline + stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight]);
+
+if i==1
+    elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
+elseif i==2
+    elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
+end
+
+annotation('textbox',[AttendPlotMidline-(textWidth+textStartPosGapFromMidline) AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','16 Hz','fontSize',10,'EdgeColor','none','FitBoxToText','on',...
+    'HorizontalAlignment','center');
+
+annotation('textbox',[AttendPlotMidline+textStartPosGapFromMidline AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','12 Hz','fontSize',10,...
+    'EdgeColor','none','FitBoxToText','on','HorizontalAlignment','center');
+end
+
+% Stim TF: Left 16 Hz; Right 12 Hz; Attended Right: 16 Hz; Ignored Right: 16 Hz;
+for i=1:2
+AttendPlotPos = get(hPlot2(2,i),'Position');
+AttendPlotMidline = AttendPlotPos(1)+ AttendPlotPos(3)/2;
+% YLine = annotation('line',[AttendPlotMidline AttendPlotMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline- stimDiskDistanceFromMidline AttendPlotMidline- stimDiskDistanceFromMidline],[0.5 1]);
+% YLine = annotation('line',[AttendPlotMidline+ stimDiskDistanceFromMidline AttendPlotMidline+ stimDiskDistanceFromMidline],[0.5 1]);
+elpsL = annotation('ellipse',[AttendPlotMidline-ellipseWidth- stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight],'units','normalized'); 
+elpsR = annotation('ellipse',[AttendPlotMidline + stimDiskDistanceFromMidline AttendPlotPos(2)+ellipseYGap ellipseWidth ellipseHeight]);
+
+if i==1
+    elpsL.FaceColor = 'none'; elpsR.FaceColor = 'k';
+elseif i==2
+    elpsL.FaceColor = 'k'; elpsR.FaceColor = 'none';
+end
+
+annotation('textbox',[AttendPlotMidline-(textWidth+textStartPosGapFromMidline) AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','12 Hz','fontSize',10,'EdgeColor','none','FitBoxToText','on',...
+    'HorizontalAlignment','center');
+
+annotation('textbox',[AttendPlotMidline+textStartPosGapFromMidline AttendPlotPos(2)+textYGap textWidth textHeight],...
+    'EdgeColor','none','String','16 Hz','fontSize',10,...
+    'EdgeColor','none','FitBoxToText','on','HorizontalAlignment','center');
+end
 
 % save Figures
 if eotCodeIdx == 1
@@ -466,11 +671,11 @@ else
     ssvepMethod = 'MT_upon_singleTrial_signal';
 end
 
-saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SRC-Attention\Topoplots\topoPlots-SRCLong-AttendedVsIgnored\');
-figName1 = fullfile(saveFolder,[protocolType '_' subString  timeEpoch '_bandPower_', eotString '_tapers_' , num2str(tapers(2))]);
+saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SRC-Attention\Topoplots\AttendedVsIgnored\');
+figName1 = fullfile(saveFolder,[protocolType '_' subString  timeEpoch '_bandPower_', ssvepMethod,'_' eotString '_tapers_' , num2str(tapers(2))]);
 figName2 = fullfile(saveFolder,[protocolType '_' subString  timeEpoch '_SSVEP_', ssvepMethod,'_' eotString '_tapers_' , num2str(tapers(2))]);
 
-if analysisMethodFlag
+if analysisMethodFlag==0
 saveas(hFig1,[figName1 '.fig'])
 print(hFig1,[figName1 '.tif'],'-dtiff','-r600')
 end
@@ -524,23 +729,35 @@ attData_all = cell(1,length(attendLocs));
 ignData_all = cell(1,length(attendLocs));
 diffData_all = cell(1,length(attendLocs));
 
-if strcmp(topoPlotStyle,'LeftVsRight')
-    attLoc = 2; ign_AttLoc = 1; att_TF = 1; ign_AttTF = 1; elecNums = elecsRight{1};
+if strcmp(topoPlotStyle,'BothSides')
+    attLoc = attendLocs; ign_AttLoc = flip(attendLocs); att_TF = 1; ign_AttTF = 1; elecNums{1} = elecsLeft{1};elecNums{2} = elecsRight{1};
+elseif strcmp(topoPlotStyle,'LeftVsRight')
+    attLoc = 2; ign_AttLoc = 1; att_TF = 1; ign_AttTF = 1; elecNums{1} = elecsRight{1};
 elseif strcmp(topoPlotStyle,'RightVsLeft')
-    attLoc = 1; ign_AttLoc = 2; att_TF = 1; ign_AttTF = 1; elecNums = elecsLeft{1};
+    attLoc = 1; ign_AttLoc = 2; att_TF = 1; ign_AttTF = 1; elecNums{1} = elecsLeft{1};
 end
 
-attDataTMP = squeeze(data{refType}(subjectIdx,elecNums,eotCodeIdx,attLoc,att_TF,:));
-ignDataTMP = squeeze(data{refType}(subjectIdx,elecNums,eotCodeIdx,ign_AttLoc,ign_AttTF,:));
-        
+for i=1:length(attLoc)
+    clear attDataTMP ignDataTMP
+    attDataTMP = squeeze(data{refType}(subjectIdx,elecNums{i},eotCodeIdx,attLoc(i),att_TF,:));
+    ignDataTMP = squeeze(data{refType}(subjectIdx,elecNums{i},eotCodeIdx,ign_AttLoc(i),ign_AttTF,:));
+    
+    attData_all{i} = attDataTMP;
+    ignData_all{i}  = ignDataTMP;
+    diffData_all{i}  = attData_all{i} -ignData_all{i};
+end
 
-attData = squeeze(mean(attDataTMP,2,nanFlag));
-ignData = squeeze(mean(ignDataTMP,2,nanFlag));
-diffData = attData-ignData;
+if length(attData_all)== 1
+    attData = squeeze(mean(attData_all{1},2,nanFlag));
+    ignData = squeeze(mean(ignData_all{1},2,nanFlag));
+    diffData = squeeze(mean(diffData_all{1},2,nanFlag));
+elseif length(attData_all)== 2
+    attData = squeeze(mean(cat(2,attData_all{1},attData_all{2}),2,nanFlag));
+    ignData = squeeze(mean(cat(2,ignData_all{1},ignData_all{2}),2,nanFlag));
+    diffData = squeeze(mean(cat(2,diffData_all{1},diffData_all{2}),2,nanFlag));
+end
+    
 
-% attData = squeeze(mean(cat(2,attData_all{1},attData_all{2}),2,nanFlag));
-% ignData = squeeze(mean(cat(2,ignData_all{1},ignData_all{2}),2,nanFlag));
-% diffData = squeeze(mean(cat(2,diffData_all{1},diffData_all{2}),2,nanFlag));
 
 
 end
@@ -549,6 +766,7 @@ end
 % Conditions for Analysis Electrodes for Static Stimuli
 
 function [attData,ignData]= getAttendVsIgnored_BarPlotData_StaticStimuli(rmsERPData,powerData,topoPlotStyle,rhythmIDs,subjectIdx,eotCodeIdx,nanFlag,elecsLeft,elecsRight)
+
 
 dataLabels = {'rmsERP','Alpha Uni Ref.','Slow gamma Uni','Fast Gamma Uni'...
                 'Slow gamma Bi','Fast Gamma Bi','SSVEP 23/24 Hz','SSVEP 31/32 Hz'};
@@ -570,29 +788,44 @@ data{6} = powerData{refType}{rhythmIDs(5)}; % Fast Gamma Bipolar Ref
 attendLocs = [1 2]; % AttendLoc; 1- Right; 2-Left
 ssvepFreqs = [1 2]; % SSVEPFreq; 1- 24 Hz; 2- 32 Hz
 
-attData_all = cell(1,length(attendLocs));
-ignData_all = cell(1,length(attendLocs));
-diffData_all = cell(1,length(attendLocs));
+attData = cell(1,length(data));
+ignData = cell(1,length(data));
 
-if strcmp(topoPlotStyle,'LeftVsRight')
-    attLoc = 2; ign_AttLoc = 1; att_TF = 1; ign_AttTF = 1; elecNums = elecsRight;
+if strcmp(topoPlotStyle,'BothSides')
+    attLoc = attendLocs; ign_AttLoc = flip(attendLocs); att_TF = 1; ign_AttTF = 1; elecNums{1} = elecsLeft;elecNums{2} = elecsRight;
+elseif strcmp(topoPlotStyle,'LeftVsRight')
+    attLoc = 2; ign_AttLoc = 1; att_TF = 1; ign_AttTF = 1; elecNums = {elecsRight};
 elseif strcmp(topoPlotStyle,'RightVsLeft')
-    attLoc = 1; ign_AttLoc = 2; att_TF = 1; ign_AttTF = 1; elecNums = elecsLeft;
+    attLoc = 1; ign_AttLoc = 2; att_TF = 1; ign_AttTF = 1; elecNums = {elecsLeft};
 end
-        
-        
 
-for iDataType = 1: length(data)
-    if iDataType == 5 || iDataType == 6
-        elecs = elecNums{2};
-    else
-        elecs = elecNums{1};
-    end
-    attData{iDataType} = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,attLoc,att_TF),2,nanFlag));
-    ignData{iDataType} = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,ign_AttLoc,ign_AttTF),2,nanFlag));
+attData_all = cell(1,length(data));
+ignData_all = cell(1,length(data));
+diffData_all = cell(1,length(data));
+
+for i=1:length(attLoc)
+        for iDataType = 1: length(data)
+            if iDataType == 5 || iDataType == 6
+                elecs = elecNums{i}{2};
+            else
+                elecs = elecNums{i}{1};
+            end
+            attData_all{1,iDataType}(:,i) = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,attLoc(i),att_TF),2,nanFlag));
+            ignData_all{1,iDataType}(:,i) = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,ign_AttLoc(i),ign_AttTF),2,nanFlag));
+        end
 end
         
-% 
+if size(attData_all{1},2) == 1
+    attData = attData_all;
+    ignData = ignData_all;
+elseif size(attData_all{1},2) == 2
+    for i = 1:size(attData_all,2)
+    attData{1,i} = mean(attData_all{1,i},2,nanFlag);
+    ignData{1,i} = mean(ignData_all{1,i},2,nanFlag);
+    end
+end
+
+
 % if strcmp(topoPlotStyle,'LeftVsRight')
 %     attData = squeeze(mean(attData_all{2},2,nanFlag));
 %     ignData = squeeze(mean(ignData_all{2},2,nanFlag));
@@ -658,14 +891,14 @@ for iAttendLoc = 1:2
     for iSSVEPFreq = 1:2
         condition = str2double(strcat(num2str(iAttendLoc),num2str(iSSVEPFreq)));
         switch(condition)
-            case 21
-                attLoc = 2; ign_AttLoc = 1; att_TF = 2; ign_AttTF = 3; elecNums = elecsRight{1};
-            case 22
-                attLoc = 2; ign_AttLoc = 1; att_TF = 3; ign_AttTF = 2; elecNums = elecsRight{1};
             case 11
                 attLoc = 1; ign_AttLoc = 2; att_TF = 2; ign_AttTF = 3; elecNums = elecsLeft{1};
+            case 21
+                attLoc = 2; ign_AttLoc = 1; att_TF = 2; ign_AttTF = 3; elecNums = elecsRight{1};
             case 12
                 attLoc = 1; ign_AttLoc = 2; att_TF = 3; ign_AttTF = 2; elecNums = elecsLeft{1};
+            case 22
+                attLoc = 2; ign_AttLoc = 1; att_TF = 3; ign_AttTF = 2; elecNums = elecsRight{1};
         end
         
         attDataTMP = squeeze(data{refType}(subjectIdx,elecNums,eotCodeIdx,attLoc,att_TF,:));
@@ -678,7 +911,7 @@ for iAttendLoc = 1:2
     end
 end
 
-for i=1:2
+for i=1:2 % SSVEP Freqs
 attData{i} = squeeze(mean(cat(2,attData_all{1,i},attData_all{2,i}),2,nanFlag));
 ignData{i} = squeeze(mean(cat(2,ignData_all{1,i},ignData_all{2,i}),2,nanFlag));
 diffData{i} = squeeze(mean(cat(2,diffData_all{1,i},diffData_all{2,i}),2,nanFlag));
