@@ -15,16 +15,16 @@
 
 
 projectName = 'CRFAttention'; gridType = 'EEG'; folderSourceString = 'E:\data\human\SRCLong';
-[subjectNames,expDates,protocolNames,stimTypes,deviceNames,capLayouts] = eval(['allProtocols' upper(projectName(1)) projectName(2:end) gridType]);
+[subjectNames,expDates,protocolNames,stimTypes,deviceNames,capLayouts] = eval(['allProtocols' upper(projectName(1)) projectName(2:end) gridType 'v1']);
 
 % stimType is a number that describes the duration of the signal around
 % each stimulus onset that needs to be extracted (given by
 % timeStartFromBaseLineList and deltaTList). For details, see stimTypeList
 [timeStartFromBaseLineList,deltaTList] = stimTypeList;
 
-extractTheseIndices = [247 249 251];
+extractTheseIndices = [];
 
-FsEye = 200; % This is set by Lablib, not by the Eye tracking system; for BP recording with Eyelink, we set FsEye at 500 Hz in Lablib.
+FsEye = 500; % This is set by Lablib, not by the Eye tracking system; for BP recording with Eyelink, we set FsEye at 500 Hz in Lablib.
 electrodesToStore = []; % If left empty, all electrodes are stored
 ignoreTargetStimFlag=1; % For GaborRFMap stimuli, set this to 1 if the program is run in the fixation mode. 
 frameRate=100;

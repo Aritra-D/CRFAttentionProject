@@ -1,0 +1,28 @@
+
+SF-ORI & Mapping Protocols for 11 Subjects
+Subject Codes:		[NM  SP  LK  SA  SB SSP  SK  DG  NN  AD  AB]
+Gender:	          	[ M   M   F   F   M   M   M   F   F   M   M]
+Eyes Open: 			[ 97 109 123 137 149 163 177 191 205 219 233];
+Eyes Closed:		[ 98 110 124 138 150 164 178 192 206 220 234];
+SF-Ori: 			[ 99 111 125 139 151 165 179 193 207 221 235];
+SF-Ori Continuous:  [100 112 126 140 152 166 180 194 208 222 236]; 
+Mapping Diagonal: 	[101:104 113:116 127:130 141:144 153:156 167:170 181:184 195:198 209:212 223:226 237:240];
+Mapping Horizontal: [105:108 117:120 131:134 145:148 157:160 171:174 185:188 199:202 213:216 227:230 241:244];
+
+
+
+
+Attention Protocols for 26 Subjects
+Subject Codes: 		[ AD  NN  NM SSP  SK  AB  LK  DG  SW  AR  SN  AM  SU ArD  UG  SS SNS  SG  MK  SR  SP  RG  IJ  SM SJP  SC]
+Gender:				[  M   F   M  M    M   M   F   F   M   M   M   M   F   M   F   M   F   F   F   M   M   M   F   F   M   F]
+Eyes Open: 			[219 205  97 163 177 233 123 191 282 289 295 301 310 318 326 336 343 351 357 378 109 404 410 418 440 455];
+Eyes Closed:		[220 206  98 164 178 234 124 192 283 290 296 302 311 319 327 337 344 352 358 379 110 405 411 419 441 456];
+SF-Ori: 			[221 207  99 165 179 235 125 193 284 291 297 303 312 321 328 338 345 353 359 380 111 406 412 420 442 457];
+SF-Ori Continuous:  [222 208 100 166 180 236 126 194 285 292 298 304 313   X 329 339 346 354 360 381 112 407 413 421 443 458];
+Psychophysics: 		[247 249 251 260 264 266 271 276 287 293 299 305 314 323 333 340 348 355 361 382 386 408 414 422 444 459];
+Attention: 			[248 250 252 263 265 270 273 277 288 294 300 306 317 325 334 342 350 356 362 383 403 409 417 425 446 460];
+
+Special Note: For Subject SSP, Attention Protocol can be combined for two protocols 262 (2/3 Blocks) & 263 (5 Blocks).
+			  For Subject RG, Lot of Trials were discarded in the first 2/3 blocks due to Computer Error.
+			  For Subject IJ, Due to issues with Stimulus optimizations and subject opting for short break,
+			  there were breaks in the protocol, three Protocols 415 (2 Blocks), 416(1 Block) & 417 (3 Blocks) can be combined.  

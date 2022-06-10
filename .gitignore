@@ -1,1 +1,12 @@
-*.asv
+*.asv 
+displayAllChannelsMappingProtocol_HumanEEG.m 
+displayResultsCommonProtocolsHumanEEG_v2.m 
+displayResultsCommonProtocolsMonkeyEEG.m 
+displayResultsMappingProtocolsHumanEEG.m 
+displayResultsNewSRCProtocol.m 
+displaySingleChannelCommonProtocolsHumanEEG.m 
+displaySingleChannelNewSRC.m 
+displayTopoplots_AttentionProtocol.m 
+displayTopoPlots_SRCProtocols_HumanEEG.m 
+run_displayTopoPlots_SRCProtocols_HumanEEG.m 
+runDisplayTopoplots_AttentionProtocol.m 

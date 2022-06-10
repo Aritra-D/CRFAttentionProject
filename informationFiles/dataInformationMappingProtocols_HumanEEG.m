@@ -11,25 +11,20 @@ end
 
 [allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType 'v1']);
 
-% stimList = cell(1,4);
-
 if strcmp(protocolType, 'Mapping-Diagonal')
-    protocolList{1} = 101:104; % Niloy NM
-    protocolList{2} = 113:116; % Svee  SP
-    protocolList{3} = 127:130; % Liza  LK
-    protocolList{4} = 141:144; % Srishty SA
-    protocolList{5} = 153:156; % Sunreeta SB
-    protocolList{6} = 167:170; % Surya    SSP
-    protocolList{7} = 181:184; % Saurabh  SK
-    protocolList{8} = 195:198; % Divya   DG
-    protocolList{9} = 209:212; % Nilanjana NN
-    protocolList{10} = 223:226;% Aritra AD
-    protocolList{11} = 237:240;% Ankan  AB
+    protocolList{1} = 101:104; % NM
+    protocolList{2} = 113:116; % SP
+    protocolList{3} = 127:130; % LK
+    protocolList{4} = 141:144; % SA
+    protocolList{5} = 153:156; % SB
+    protocolList{6} = 167:170; % SSP
+    protocolList{7} = 181:184; % SK
+    protocolList{8} = 195:198; % DG
+    protocolList{9} = 209:212; % NN
+    protocolList{10} = 223:226;% AD
+    protocolList{11} = 237:240;% AB
     
-%     for iProt = 1:4
-%         stimList{iProt} = 2*iProt + zeros(1,3);
-%     end
-%     
+     
 elseif strcmp(protocolType, 'Mapping-Horizontal')
     protocolList{1} = 105:108;
     protocolList{2} = 117:120;
@@ -43,9 +38,6 @@ elseif strcmp(protocolType, 'Mapping-Horizontal')
     protocolList{10} = 227:230;
     protocolList{11} = 241:244;
     
-%     for iProt = 1:4
-%         stimList{iProt} = [2*iProt 0 2*iProt];
-%     end
 end
 
 numSubjects = length(protocolList);
