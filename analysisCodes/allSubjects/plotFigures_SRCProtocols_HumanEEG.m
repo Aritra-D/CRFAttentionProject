@@ -13,31 +13,34 @@ timingParamters.erpRange = [0 0.250];
 
 if  all(subjectIdx<8) % First Set of Recording- Nov-Dec 2021
     freqRanges{1} = [8 12];    % alpha
-    freqRanges{2} = [20 66];   % gamma
+    freqRanges{2} = [25 70];   % gamma
     freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
     freqRanges{4} = [31 31];   % SSVEP Right Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
-    freqRanges{5} = [20 34];   % Slow Gamma
-    freqRanges{6} = [36 66];   % Fast Gamma
+    freqRanges{5} = [26 34];   % Slow Gamma
+    freqRanges{6} = [44 56];   % Fast Gamma
     freqRanges{7} = [102 250]; % High Gamma
 else % Second Set of Recording- Jan-Mar 2022
     freqRanges{1} = [8 12];    % alpha
-    freqRanges{2} = [20 66];   % gamma
+    freqRanges{2} = [25 70];   % gamma
     freqRanges{3} = [24 24];   % SSVEP Left Stim; Flicker Freq bug Fixed
     freqRanges{4} = [32 32];   % SSVEP Right Stim; Flicker Freq bug Fixed
-    freqRanges{5} = [20 34];   % Slow Gamma
-    freqRanges{6} = [36 66];   % Fast Gamma
+    freqRanges{5} = [26 34];   % Slow Gamma
+    freqRanges{6} = [44 56];   % Fast Gamma
     freqRanges{7} = [102 250]; % High Gamma
 end
 numFreqs = length(freqRanges);
 
 
-fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) '.mat']);
+fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) ...
+    '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
+    '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
 if exist(fileName, 'file')
     load(fileName) %#ok<*LOAD>
 else
-    [erpData,fftData,energyData,badHighPriorityElecs,badElecs] = ...
+    [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = ...
         getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers);
-    save(fileName,'erpData','fftData','energyData','badHighPriorityElecs','badElecs')
+    save(fileName,'erpData','fftData','energyData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
 % Plotting

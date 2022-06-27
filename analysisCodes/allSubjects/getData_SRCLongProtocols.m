@@ -50,6 +50,27 @@ function [computed] = get_data_for_all_subjects(protocolType, gridType, cap_type
         exp_date = num2str(expDates{subject_idx});
         protocol = num2str(protocolNames{subject_idx});
         disp(['SUBJECT: ' subject ', EXPDATE:' exp_date, ', PROTOCOL:' protocol])
+        
+        if subject_idx < 8 % First Set of Recording- Nov-Dec 2021
+            freqRanges{1} = [8 12];    % alpha
+            freqRanges{2} = [26 56];   % gamma
+            freqRanges{3} = [23 23];   % SSVEP Left Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+            freqRanges{4} = [31 31];   % SSVEP Right Stim; Flicker Freq moved by 0.5 Hz due one extra blank Frame
+            freqRanges{5} = [26 34];   % Slow Gamma
+            freqRanges{6} = [44 56];   % Fast Gamma
+            freqRanges{7} = [102 250]; % High Gamma
+            
+        else % Second Set of Recording- Jan-Mar 2022
+            
+            freqRanges{1} = [8 12];    % alpha
+            freqRanges{2} = [26 56];   % gamma
+            freqRanges{3} = [24 24];   % SSVEP Left Stim; Flicker Freq bug Fixed
+            freqRanges{4} = [32 32];   % SSVEP Right Stim; Flicker Freq bug Fixed
+            freqRanges{5} = [26 34];   % Slow Gamma
+            freqRanges{6} = [44 56];   % Fast Gamma
+            freqRanges{7} = [102 250]; % High Gamma
+        end
+        
         clear badTrials badElectrodes
         folderName = fullfile(dataFolderSourceString, 'data', subject, grid_type, exp_date, protocol);
         folderExtract = fullfile(folderName, 'extractedData');
@@ -83,8 +104,8 @@ function [computed] = get_data_for_all_subjects(protocolType, gridType, cap_type
         
         unipolar_bad_electrodes = get_bad_electrodes(cap_type, 'unipolar', folderSegment);
         bipolar_bad_electrodes = get_bad_electrodes(cap_type, 'bipolar', folderSegment);
-        unipolar_data = get_data_for_one_subject(cap_type, 'unipolar', eValsUnique, folderLFP, trials, bad_trials);
-        bipolar_data = get_data_for_one_subject(cap_type, 'bipolar', eValsUnique, folderLFP, trials, bad_trials);
+        unipolar_data = get_data_for_one_subject(cap_type, 'unipolar', eValsUnique, folderLFP, trials, bad_trials, freqRanges);
+        bipolar_data = get_data_for_one_subject(cap_type, 'bipolar', eValsUnique, folderLFP, trials, bad_trials, freqRanges);
 
         computed{subject_idx, 1} = unipolar_bad_electrodes;
         computed{subject_idx, 2} = unipolar_data;
@@ -137,7 +158,7 @@ function [badElecs, badHighPriorityElecs] = get_bad_electrodes(cap_type, ref_typ
     end
 end
 
-function [computed] = get_data_for_one_subject(cap_type, ref_type, eValsUnique, folderLFP, trials, bad_trials)
+function [computed] = get_data_for_one_subject(cap_type, ref_type, eValsUnique, folderLFP, trials, bad_trials, freqRanges)
     electrodes = getElectrodeList(cap_type, ref_type, 1);
     computed = cell(1,length(electrodes));
 
@@ -154,27 +175,27 @@ function [computed] = get_data_for_one_subject(cap_type, ref_type, eValsUnique, 
             x.analogData.stimOnset = x1.analogData.stimOnset-x2.analogData.stimOnset;
             x.analogData.targetOnset = x1.analogData.targetOnset-x2.analogData.targetOnset;
         end
-        computed{elec_idx} = get_good_trials_for_all_eot_codes(eValsUnique, x.analogData, timeVals, trials, bad_trials);
+        computed{elec_idx} = get_good_trials_for_all_eot_codes(eValsUnique, x.analogData, timeVals, trials, bad_trials, freqRanges);
     end
 end
 
-function [computed] = get_good_trials_for_all_eot_codes(eot_codes, analog_data, timeVals, trials, bad_trials)
+function [computed] = get_good_trials_for_all_eot_codes(eot_codes, analog_data, timeVals, trials, bad_trials, freqRanges)
     computed = cell(1,length(eot_codes));
     attend_locs = [0 1];
     for eot_code_idx = 1: length(eot_codes)
-        computed{eot_code_idx} = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials(:,:,eot_code_idx,:), bad_trials);
+        computed{eot_code_idx} = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials(:,:,eot_code_idx,:), bad_trials, freqRanges);
     end
 end
 
-function [computed] = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials, bad_trials)
+function [computed] = get_good_trials_for_all_attend_locs(attend_locs, analog_data, timeVals, trials, bad_trials, freqRanges)
     computed = cell(1,length(attend_locs));
     tf = [0 1 2];
     for attend_loc_idx = 1: length(attend_locs)
-        computed{attend_loc_idx} = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials(:,:, attend_loc_idx), bad_trials);
+        computed{attend_loc_idx} = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials(:,:, attend_loc_idx), bad_trials, freqRanges);
     end
 end
 
-function [computed] = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials, bad_trials)
+function [computed] = get_good_trials_for_all_tf(tf, analog_data, timeVals, trials, bad_trials, freqRanges)
     computed = cell(length(tf),2);
 
     keySet = {'Baseline', 'Stimulus', 'Pre_Target'};
@@ -187,12 +208,6 @@ function [computed] = get_good_trials_for_all_tf(tf, analog_data, timeVals, tria
     params.Fs       = 1000;
     params.fpass    = [0 250];
     params.trialave = 1;
-
-    freqRanges{1} = [8 12]; % alpha
-    freqRanges{2} = [20 66]; % gamma
-    freqRanges{3} = [23 23];  % SSVEP Left Stim
-    freqRanges{4} = [31 31];  % SSVEP Right Stim
-    numFreqs = length(freqRanges); %#ok<*NASGU>
 
     for tf_idx = 1: length(tf)
         good_trial = get_good_trials(trials(:,tf_idx), bad_trials);

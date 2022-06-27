@@ -4,7 +4,7 @@ if ~exist('gridType','var');                            gridType = 'EEG'; end
 
 % FolderSourceString for extracted dataset
 if strcmp(getenv('computername'),'RAYLABPC-ARITRA') || strcmp(getenv('username'),'RayLabPC-Aritra')
-    dataFolderSourceString = 'E:\data\human\SFOri-Mapping';
+    dataFolderSourceString = 'E:\data\human\Mapping';
 else
     dataFolderSourceString = 'M:\';
 end

@@ -76,23 +76,58 @@ for i= 1:length(barPlotData_Performance)
     bar(i,barPlotData_Performance(i),colors{i},'parent',hPlot1(1,1)); hold(hPlot1(1,1), 'on');
     bar(i,barPlotData_ResponseTime(i),colors{i},'parent',hPlot1(1,2)); hold(hPlot1(1,2), 'on');
     bar(i,barPlotData_DeltaOri(i),colors{i},'parent',hPlot1(1,3)); hold(hPlot1(1,3), 'on');
+    
+    bar(i,barPlotData_Performance(i),colors{i},'parent',hPlot2(1,1)); hold(hPlot2(1,1), 'on');
+    bar(i,barPlotData_ResponseTime(i),colors{i},'parent',hPlot2(1,2)); hold(hPlot2(1,2), 'on');
+    bar(i,barPlotData_DeltaOri(i),colors{i},'parent',hPlot2(1,3)); hold(hPlot2(1,3), 'on');
 end
 errorbar(hPlot1(1),barPlotData_Performance,barPlotData_semPerformance,'LineStyle','none','color','k','LineWidth',1.5);
 errorbar(hPlot1(2),barPlotData_ResponseTime,barPlotData_semResponseTime,'LineStyle','none','color','k','LineWidth',1.5);
 errorbar(hPlot1(3),barPlotData_DeltaOri,barPlotData_semDeltaOri,'LineStyle','none','color','k','LineWidth',1.5);
+errorbar(hPlot2(1),barPlotData_Performance,barPlotData_semPerformance,'LineStyle','none','color','k','LineWidth',1.5);
+errorbar(hPlot2(2),barPlotData_ResponseTime,barPlotData_semResponseTime,'LineStyle','none','color','k','LineWidth',1.5);
+errorbar(hPlot2(3),barPlotData_DeltaOri,barPlotData_semDeltaOri,'LineStyle','none','color','k','LineWidth',1.5);
 
 tickLengthPlot = 1.5*get(hPlot1(1,1),'TickLength');
 
 for i=1:3
     set(hPlot1(i),'XTick',1:6);
     set(hPlot1(i),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',14,'box','off','TickDir','out','TickLength',tickLengthPlot);
+        set(hPlot2(i),'XTick',1:6);
+    set(hPlot2(i),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',14,'box','off','TickDir','out','TickLength',tickLengthPlot);
+
 end
 set(hPlot1(2),'YTick',0:200:800,'YTickLabel',0:200:800,'XTickLabelRotation',45,'fontSize',14,'box','off','TickDir','out','TickLength',tickLengthPlot);
-
+set(hPlot2(2),'YTick',0:200:800,'YTickLabel',0:200:800,'XTickLabelRotation',45,'fontSize',14,'box','off','TickDir','out','TickLength',tickLengthPlot);
 
 ylim(hPlot1(1),[0 100]); title(hPlot1(1),'Behavioral Performance'); ylabel(hPlot1(1),'Accuracy (%)')
 ylim(hPlot1(2),[0 800]); title(hPlot1(2),'Response Time'); ylabel(hPlot1(2),'Response Time (ms)')
 ylim(hPlot1(3),[0 15]); title(hPlot1(3),'\Delta Orientation (Stim->Target)'); ylabel(hPlot1(3),'\Delta Ori (Degree)')
+ylim(hPlot2(1),[0 100]); title(hPlot2(1),'Behavioral Performance'); ylabel(hPlot2(1),'Accuracy (%)')
+ylim(hPlot2(2),[0 800]); title(hPlot2(2),'Response Time'); ylabel(hPlot2(2),'Response Time (ms)')
+ylim(hPlot2(3),[0 15]); title(hPlot2(3),'\Delta Orientation (Stim->Target)'); ylabel(hPlot2(3),'\Delta Ori (Degree)')
+
+attLocs = flip([1 2]); % 1-Right; 2-Left
+count = 1;
+
+for iTF = 1:size(accuracyVals,2)
+    for iAttLoc=1:size(accuracyVals,3)
+        accuracy_SubWise(:,count) = squeeze(accuracyVals(:,iTF,attLocs(iAttLoc))); %#ok<*AGROW>
+        reactTimes_SubWise(:,count) = squeeze(reactTimes(:,iTF,attLocs(iAttLoc)));
+        deltaOri_SubWise(:,count) = squeeze(deltaOri(:,iTF,attLocs(iAttLoc)));
+        count = count+1;
+    end
+end
+
+colors = jet(size(accuracy_SubWise,1));
+
+for iSub = 1:size(accuracy_SubWise,1)
+plot(hPlot2(1,1),1:size(accuracy_SubWise,2),100*(squeeze(accuracy_SubWise(iSub,:))),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+plot(hPlot2(1,2),1:size(reactTimes_SubWise,2),squeeze(reactTimes_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+plot(hPlot2(1,3),1:size(deltaOri_SubWise,2),squeeze(deltaOri_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+
+end
+
 end
 
 function [xVal,yVal] = computeFractionCorrent(X,Y)

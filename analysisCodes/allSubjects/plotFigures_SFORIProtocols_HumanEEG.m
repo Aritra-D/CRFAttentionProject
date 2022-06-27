@@ -13,21 +13,24 @@ timingParamters.stRange = [0.25 0.75];
 timingParamters.erpRange = [0 0.25];
 
 freqRanges{1} = [8 12];    % alpha
-freqRanges{2} = [20 66];   % gamma
+freqRanges{2} = [25 70];   % gamma
 freqRanges{3} = [24 24];   % SSVEP Left Stim
 freqRanges{4} = [32 32];   % SSVEP Right Stim
-freqRanges{5} = [20 34];   % Slow Gamma
-freqRanges{6} = [36 66];   % Fast Gamma
+freqRanges{5} = [26 34];   % Slow Gamma
+freqRanges{6} = [44 56];   % Fast Gamma
 freqRanges{7} = [102 250]; % High Gamma
 
 numFreqs = length(freqRanges); %#ok<*NASGU>
-fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) '.mat']);
+fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
+    [protocolType '_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
+    '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
 if exist(fileName, 'file')
     load(fileName,'energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = ...
         getData_SFORIProtocols(protocolType,gridType,timingParamters,tapers,freqRanges);
-    save(fileName,'fftData','energyData','energyDataTF','badHighPriorityElecs','badElecs')
+    save(fileName,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
 end
 
 if SSVEPAnalysisMethod == 2
@@ -89,10 +92,10 @@ hFig1 = figure(1);
 set(hFig1,'units','normalized','outerPosition',[0 0 1 1]);
 hPlot1 = getPlotHandles(5,2,[0.1 0.05, 0.2 0.9],0.02,0.04,0);
 hPlot2 = getPlotHandles(2,2,[0.4 0.55, 0.2 0.4],0.02,0.04,0);
-hPlot3 = getPlotHandles(2,2,[0.4 0.05, 0.2 0.4],0.02,0.04,0);
+hPlot3 = getPlotHandles(2,2,[0.4 0.07, 0.2 0.4],0.02,0.04,0);
 
 hPlot4 = getPlotHandles(2,2,[0.7 0.55, 0.2 0.4],0.02,0.04,0);
-hPlot5 = getPlotHandles(2,2,[0.7 0.05, 0.2 0.4],0.02,0.04,0);
+hPlot5 = getPlotHandles(2,2,[0.7 0.07, 0.2 0.4],0.02,0.04,0);
 
 fontSizeLarge = 14; tickPlotLength = [0.025 0];
 showMode = 'dots';
@@ -107,8 +110,8 @@ chanlocs_Bipolar = cL_Bipolar.eloc;
 
 electrodeList_Unipolar = getElectrodeList('actiCap64','unipolar',1);
 electrodeList_Bipolar = getElectrodeList('actiCap64','bipolar',1);
-elecUnipolarList =  [24 57 58 26 61 62 63 29 30 31];
-elecBipolarList = [93 94 101 102 96 97 111 107 112];
+elecUnipolarList =  [24 29 57 61 26 31 58 63];
+elecBipolarList = [93 94 101 96 97 102];
 
 neuralMeasures = [1 2 5 6 4]; % Neural Measures 1:Alpha, 2: Slow Gamma, 3: Fast Gamma, 4: SSVEP 24 Hz; 4: SSVEP 32 Hz;
 colormap(jet);
@@ -153,7 +156,20 @@ for i=1:2 % 1- all SF-Ori conditions, 2- max Gamma SF-Ori condition
         
         topoPlotDataTMP = 10*(squeeze(mean(log10(STPowerTopoTMP),1,nanFlag)) - squeeze(mean(log10(BLPowerTopoTMP),1,nanFlag)));
         subplot(hPlot1(j,i)); cla; hold on;
-        topoplot_murty(topoPlotDataTMP,chanLocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlotDataTMP); caxis(colorRange);colorbar;
+        topoplot_murty(topoPlotDataTMP,chanLocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlotDataTMP); 
+        caxis(colorRange); cBar = colorbar;
+        
+        if j==5
+            cTicks = [colorRange(1) 0 colorRange(2)/2 colorRange(2)]; 
+        else
+            cTicks = [colorRange(1) 0 colorRange(2)]; cBar = colorbar;
+        end
+        tickPlotLength = get(hPlot1(1,1),'TickLength'); fontSize = 12;
+        set(cBar,'Ticks',cTicks,'tickLength',4*tickPlotLength(1),'TickDir','out','fontSize',fontSize);
+        if i==2 && j==5
+            cBar.Label.String ='\Delta Power (dB)'; cBar.Label.FontSize = 14;
+        end
+        
         topoplot_murty([],chanLocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecs);
 
     end
@@ -259,24 +275,28 @@ linkaxes(hPlot2); ylim(hPlot2(1,1),[-4 4]); xlim(hPlot2(1,1),[0 100]);
 linkaxes(hPlot4); ylim(hPlot4(1,1),[-4 4]); xlim(hPlot4(1,1),[0 6]);
 
 if SSVEPAnalysisMethod ==1 
-linkaxes(hPlot5); ylim(hPlot5(1,1),[-4 10]); xlim(hPlot5(1,1),[0 6]);
+linkaxes(hPlot5); ylim(hPlot5(1,1),[-4 11]); xlim(hPlot5(1,1),[0 6]);
 elseif SSVEPAnalysisMethod ==2
 linkaxes(hPlot5); ylim(hPlot5(1,1),[-8 25]); xlim(hPlot5(1,1),[0 6]);
 end
+lineWidth = 1.5;
 
 for i=1:2
     for j=1:2
         set(hPlot2(i,j),'box','off','fontSize',fontSize)
         set(hPlot4(i,j),'box','off','fontSize',fontSize)
         xline(hPlot2(i,j),8,'k'); xline(hPlot2(i,j),12,'k')
-        xline(hPlot2(i,j),19,'--r'); xline(hPlot2(i,j),67,'--r')
-        xline(hPlot2(i,j),20,'color',colors{3}); xline(hPlot2(i,j),34,'color',colors{3})
-        xline(hPlot2(i,j),36,'m'); xline(hPlot2(i,j),66,'m')
+        xline(hPlot2(i,j),freqRanges{2}(1)-1,'--r'); xline(hPlot2(i,j),freqRanges{2}(2)+1,'--r')
+        xline(hPlot2(i,j),freqRanges{5}(1),'color',colors{3}); xline(hPlot2(i,j),freqRanges{5}(2),'color',colors{3})
+        xline(hPlot2(i,j),freqRanges{6}(1),'m'); xline(hPlot2(i,j),freqRanges{6}(2),'m')
+        yline(hPlot2(i,j),0,'--k','lineWidth',lineWidth)
     end
 end
-if SSVEPAnalysisMethod ==1 
-linkaxes(hPlot3); ylim(hPlot3(1,1),[-4 10]); xlim(hPlot3(1,1),[0 100]);
+if SSVEPAnalysisMethod ==1
+    yLims = [-4 10];
+linkaxes(hPlot3); ylim(hPlot3(1,1),yLims); xlim(hPlot3(1,1),[0 100]);
 elseif SSVEPAnalysisMethod ==2
+    yLims = [-8 25];
 linkaxes(hPlot3); ylim(hPlot3(1,1),[-8 25]); xlim(hPlot3(1,1),[0 100]);
 end
 
@@ -285,33 +305,38 @@ for i=1:2
         set(hPlot3(i,j),'box','off','fontSize',fontSize)
         set(hPlot5(i,j),'box','off','fontSize',fontSize)
         xline(hPlot3(i,j),8,'k'); xline(hPlot3(i,j),12,'k')
-        xline(hPlot3(i,j),19,'--r'); xline(hPlot3(i,j),67,'--r')
-        xline(hPlot3(i,j),20,'color',colors{3}); xline(hPlot3(i,j),34,'color',colors{3})
-        xline(hPlot3(i,j),36,'m'); xline(hPlot3(i,j),66,'m')
-        xline(hPlot3(i,j),32,'c'); 
+        xline(hPlot3(i,j),freqRanges{2}(1)-1,'--r'); xline(hPlot3(i,j),freqRanges{2}(2)+1,'--r')
+        xline(hPlot3(i,j),freqRanges{5}(1),'color',colors{3}); xline(hPlot3(i,j),freqRanges{5}(2),'color',colors{3})
+        xline(hPlot3(i,j),freqRanges{6}(1),'m'); xline(hPlot3(i,j),freqRanges{6}(2),'m')
+        xline(hPlot3(i,j),32,'c');
+        yline(hPlot3(i,j),0,'--k','lineWidth',lineWidth)
     end
 end
 
 
 
-ylabel(hPlot2(1,1),'Unipolar PSD');
-ylabel(hPlot2(2,1),'Bipolar PSD');
-ylabel(hPlot3(1,1),'Unipolar PSD');
-ylabel(hPlot3(2,1),'Bipolar PSD');
+ylabel(hPlot2(1,1),{'Unipolar PSD' 'log_1_0 (power (\muV^2))' });
+ylabel(hPlot2(2,1),{'Bipolar PSD' 'log_1_0 (power (\muV^2))' });
+ylabel(hPlot3(1,1),{'Unipolar PSD' 'log_1_0 (power (\muV^2))' });
+ylabel(hPlot3(2,1),{'Bipolar PSD' 'log_1_0 (power (\muV^2))' });
 
-ylabel(hPlot4(1,1),'Unipolar \Delta Power');
-ylabel(hPlot4(2,1),'Bipolar \Delta Power');
-ylabel(hPlot5(1,1),'Unipolar \Delta Power');
-ylabel(hPlot5(2,1),'Bipolar \Delta Power');
+ylabel(hPlot4(1,1),{'Unipolar' '\Delta Power (dB)'});
+ylabel(hPlot4(2,1),{'Bipolar' '\Delta Power (dB)'});
+ylabel(hPlot5(1,1),{'Unipolar' '\Delta Power (dB)'});
+ylabel(hPlot5(2,1),{'Bipolar' '\Delta Power (dB)'});
+
+xlabel(hPlot2(2,1),'Frequency (Hz)');
+xlabel(hPlot3(2,1),'Frequency (Hz)');
+
 
 neuralMeasuresLabels{1} = {'alpha' '(8-12 Hz)'};
-neuralMeasuresLabels{2} = {'Gamma' '(20-66 Hz)'};
-neuralMeasuresLabels{3} = {'Slow Gamma' '(20-34 Hz)'};
-neuralMeasuresLabels{4} = {'Fast Gamma' '(36-66 Hz)'};
+neuralMeasuresLabels{2} = {'Gamma' [' (' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) ' Hz)']};
+neuralMeasuresLabels{3} = {'Slow Gamma' [' (' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) ' Hz)']};
+neuralMeasuresLabels{4} = {'Fast Gamma' [' (' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) ' Hz)']};
 neuralMeasuresLabels{5} = {'SSVEP' '(32 Hz)'};
 
 for i=1:5
-annotation('textbox',[0.05 0.9-(i-1)*0.2 0.05 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',12);
+annotation('textbox',[0.02 0.9-(i-1)*0.2 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',14);
 end  
 
 for i= 1:5
@@ -324,13 +349,33 @@ Datalabels = {'alpha','gamma','Slow-\gamma','Fast-\gamma'};
 Datalabels2 = {'alpha','gamma','Slow-\gamma','Fast-\gamma','SSVEP'}; 
 for i=1:2
     for j=1:2
-        set(hPlot4(i,j),'XTick',1:5,'XTickLabel',[],'fontSize',fontSize,'box','off','tickLength',2*tickPlotLength,'TickDir','out')
-        set(hPlot5(i,j),'XTick',1:5,'XTickLabel',[],'fontSize',fontSize,'box','off','tickLength',2*tickPlotLength,'TickDir','out')
+        set(hPlot2(i,j),'XTickLabel',[],'YTick',[-4 0 4],'fontSize',fontSize,'box','off','tickLength',4*tickPlotLength,'TickDir','out')
+        set(hPlot3(i,j),'XTickLabel',[],'YTick',[yLims(1) 0:5:yLims(2)],'fontSize',fontSize,'box','off','tickLength',4*tickPlotLength,'TickDir','out')
+        set(hPlot4(i,j),'XTick',1:4,'XTickLabel',[],'fontSize',fontSize,'box','off','tickLength',4*tickPlotLength,'TickDir','out')
+        set(hPlot5(i,j),'XTick',1:5,'XTickLabel',[],'fontSize',fontSize,'box','off','tickLength',4*tickPlotLength,'TickDir','out')
     end
 end
 
-set(hPlot4(2,1),'xTick',1:5,'xTickLabel',Datalabels,'XTickLabelRotation',30);
-set(hPlot5(2,1),'xTick',1:6,'xTickLabel',Datalabels2,'XTickLabelRotation',30);
+set(hPlot2(2,1),'xTick',0:50:100,'XTickLabel',0:50:100);
+set(hPlot3(2,1),'xTick',0:50:100,'XTickLabel',0:50:100);
+set(hPlot4(2,1),'xTick',1:4,'xTickLabel',Datalabels,'XTickLabelRotation',30);
+set(hPlot5(2,1),'xTick',1:5,'xTickLabel',Datalabels2,'XTickLabelRotation',30);
+
+
+if SSVEPAnalysisMethod == 1
+    ssvepMethod = 'SSVEP_SingleTrial';
+elseif SSVEPAnalysisMethod == 2
+    ssvepMethod = 'SSVEP_trialAvg';
+end
+
+saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SF-Ori\');
+figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx)) '_' protocolType '_tapers_',num2str(tapers(2)) '_' ssvepMethod...
+    '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
+    '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz']);
+
+saveas(hFig1,[figName '.fig'])
+print(hFig1,[figName '.tif'],'-dtiff','-r600')
 
 
 end
