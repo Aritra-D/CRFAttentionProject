@@ -1,13 +1,17 @@
-function plotBehaviorSummary_SRCLongProtocols_Attention(subjectIdx)
+function plotBehaviorSummary_SRCLongProtocols_Attention(subjectIdx,getTFIndexFromTargetDescFlag,statTest)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
-if ~exist('gridType','var');            gridType='EEG';      end
+% if ~exist('gridType','var');            gridType='EEG';      end
 
 protocolType = 'SRC-Long';
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_BehaviorData.mat']);
 if exist(fileName, 'file')
+    if getTFIndexFromTargetDescFlag
+    behavior_Attention = load(fileName,'BehaviorData_SRCLong_TargetDesc').BehaviorData_SRCLong_TargetDesc;
+    else
     behavior_Attention = load(fileName,'BehaviorData_SRCLong_StimDesc').BehaviorData_SRCLong_StimDesc;
+    end
 else
     error('Consolidated Behavior Data not Found- Refer to plotBehavior_SRCProtocols to generate consoliadated Behavior Data')
 end
@@ -119,14 +123,53 @@ for iTF = 1:size(accuracyVals,2)
     end
 end
 
-colors = jet(size(accuracy_SubWise,1));
+% Set up Statistical Tests
+Condition{1} = 'AttL-Static';
+Condition{2} = 'AttR-Static';
+Condition{3} = 'AttL-12Hz';
+Condition{4} = 'AttR-12Hz';
+Condition{5} = 'AttL-16Hz';
+Condition{6} = 'AttR-16Hz';
 
-for iSub = 1:size(accuracy_SubWise,1)
-plot(hPlot2(1,1),1:size(accuracy_SubWise,2),100*(squeeze(accuracy_SubWise(iSub,:))),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
-plot(hPlot2(1,2),1:size(reactTimes_SubWise,2),squeeze(reactTimes_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
-plot(hPlot2(1,3),1:size(deltaOri_SubWise,2),squeeze(deltaOri_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+BehaviorParameters{1} = 'accuracy';
+BehaviorParameters{2} = 'RT';
+BehaviorParameters{3} = 'dOri';
 
+
+allCombinations = nchoosek(1:length(Condition),2);
+for i=1:3
+    switch i
+        case 1; statData = accuracy_SubWise';
+        case 2; statData = reactTimes_SubWise';
+        case 3; statData = deltaOri_SubWise';
+    end
+for iComb=1:size(allCombinations,1)
+    if strcmp(statTest,'RankSum')
+        pVals(iComb) = ranksum(statData(allCombinations(iComb,1),:),statData(allCombinations(iComb,2),:));
+    elseif strcmp(statTest,'t-test')
+        [~,pVals(iComb)] = ttest(statData(allCombinations(iComb,1),:),statData(allCombinations(iComb,2),:));
+    end
+    disp ([BehaviorParameters{i} ': ' statTest ': ' Condition{allCombinations(iComb,1)} ' & ' Condition{allCombinations(iComb,2)} ' pVals = ' num2str(pVals(iComb))])
 end
+end
+
+annotation('textbox',[0 0.92 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','A','fontWeight','bold','fontSize',28);
+annotation('textbox',[0.315 0.92 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','B','fontWeight','bold','fontSize',28);
+annotation('textbox',[0.630 0.92 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','C','fontWeight','bold','fontSize',28);
+
+
+% colors = jet(size(accuracy_SubWise,1));
+% 
+% for iSub = 1:size(accuracy_SubWise,1)
+% plot(hPlot2(1,1),1:size(accuracy_SubWise,2),100*(squeeze(accuracy_SubWise(iSub,:))),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+% plot(hPlot2(1,2),1:size(reactTimes_SubWise,2),squeeze(reactTimes_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+% plot(hPlot2(1,3),1:size(deltaOri_SubWise,2),squeeze(deltaOri_SubWise(iSub,:)),'-o','color',colors(iSub,:,:)); hold(hPlot2(1),'on');
+% 
+% end
+
+figName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SRC-Attention\Behavior\','BehaviorSummary_N_26_SRCAttention');
+saveas(hFig,[figName '.fig'])
+print(hFig,[figName '.tif'],'-dtiff','-r600')
 
 end
 

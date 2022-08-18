@@ -4,7 +4,7 @@
 
 function displayConsolidatedResults_AttendVsIgnored(protocolType,...
     subjectIdx,timeEpoch,eotCodeIdx,removeBadElectrodeData,...
-    plotBaselineSubtractedPowerFlag,topoplot_style,colorMap)
+    plotBaselineSubtractedPowerFlag,topoplot_style,colorMap,badTrialStr,statTest)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
@@ -39,22 +39,44 @@ numFreqs = length(freqRanges);
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '.mat']);
 
 if exist(fileName, 'file')
     load(fileName,'erpData','energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers,badTrialStr);
     save(fileName,'erpData','fftData','energyData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
+
+% Replace the PSD and power Values if trial avg  PSD and power is plotted
+% if analysisMethodFlag
+%     clear energyData.dataBL energyData.dataST energyData.dataTG
+%     clear energyData.analysisDataBL energyData.analysisDataST energyData.analysisDataTG
+%     for iRef = 1:2
+%         energyData.dataBL{iRef} = energyData.dataBL_trialAvg{iRef};
+%         energyData.dataST{iRef} = energyData.dataST_trialAvg{iRef};
+%         energyData.dataTG{iRef} = energyData.dataTG_trialAvg{iRef};
+%         
+%         energyData.analysisDataBL{iRef} = energyData.analysisDataBL_trialAvg{iRef};
+%         energyData.analysisDataST{iRef} = energyData.analysisDataST_trialAvg{iRef};
+%         energyData.analysisDataTG{iRef} = energyData.analysisDataTG_trialAvg{iRef};
+%     end
+% end
+
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
+declaredBadElectrodes = [8 9 10 11 43 44];
 if removeBadElectrodeData
     for iSub = 1:length(subjectIdx)
         for iRef = 1:2
             clear badElecsTMP
-            badElecsTMP = badElecs{iRef}{subjectIdx(iSub)};
+%             if subjectIdx(iSub)>7
+                badElecsTMP = union(badElecs{iRef}{subjectIdx(iSub)},declaredBadElectrodes);
+%             else
+%                 badElecsTMP = badElecs{iRef}{subjectIdx(iSub)};
+%             end
+                
             
             % removing ERP data for Bad Electrodes
             erpData.dataST{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
@@ -67,11 +89,17 @@ if removeBadElectrodeData
             energyData.dataBL{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
             energyData.dataST{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
             energyData.dataTG{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
+            energyData.dataBL_trialAvg{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
+            energyData.dataST_trialAvg{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
+            energyData.dataTG_trialAvg{iRef}(subjectIdx(iSub),badElecsTMP,:,:,:,:) = NaN;
             
             for iFreqRanges = 1: length(freqRanges)
                 energyData.analysisDataBL{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
                 energyData.analysisDataST{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
                 energyData.analysisDataTG{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
+                energyData.analysisDataBL_trialAvg{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
+                energyData.analysisDataST_trialAvg{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
+                energyData.analysisDataTG_trialAvg{iRef}{iFreqRanges}(subjectIdx(iSub),badElecsTMP,:,:,:) = NaN;
             end
         end
     end
@@ -97,6 +125,15 @@ if plotBaselineSubtractedPowerFlag
     cLimsDiff{2} = [-1 1.5]; % range in dB
     cLimsDiff{3} = [0 1]; % range in dB
     cLimsDiff{4} = [0 4]; % range in dBelse
+else
+    cLims{1} = [-2 2]; % range in dB
+    cLims{2} = [-1 1.5]; % range in dB
+    cLims{3} = [-1 2];
+    cLims{4} = [-1 10];
+    cLimsDiff{1} = [-1 2]; % range in dB
+    cLimsDiff{2} = [-1 1.5]; % range in dB
+    cLimsDiff{3} = [0 1]; % range in dB
+    cLimsDiff{4} = [0 4]; % range in dBelse
 end
 
 fontSize = 14; tickLengthMedium = [0.025 0];
@@ -114,10 +151,10 @@ showOccipitalElecsLeft{2} = showOccipitalElecsBipolarLeft;
 showOccipitalElecsRight{1} = showOccipitalElecsUnipolarRight;
 showOccipitalElecsRight{2} = showOccipitalElecsBipolarRight;
 
-showFrontalElecsUnipolarLeft = [1 33 34 3 37 4];
-showFrontalElecsUnipolarRight = [2 35 36 6 40 7];
-showFrontalElecsBipolarLeft = [1 2 5 7 8 9 10 15 16 17];
-showFrontalElecsBipolarRight = [3 4 6 11 12 13 14 20 21 22];
+showFrontalElecsUnipolarLeft = [1 33 34 3 37 4]; %[8 9 43];
+showFrontalElecsUnipolarRight =[2 35 36 6 40 7]; % [10 11 44];
+showFrontalElecsBipolarLeft = [1 2 5 7 8 9 10 15 16 17]; %[25 33 34 41 42]
+showFrontalElecsBipolarRight = [3 4 6 11 12 13 14 20 21 22]; %[28 35 36 43 44];
 showFrontalElecsUnipolar = [showFrontalElecsUnipolarLeft showFrontalElecsUnipolarRight];
 showFrontalElecsBipolar = [showFrontalElecsBipolarLeft showFrontalElecsBipolarRight];
 
@@ -169,6 +206,23 @@ elseif strcmp(timeEpoch,'PreTarget')
     rmsERPData = erpData.analysisData_TG;
 end
 
+% if strcmp(timeEpoch,'StimOnset')
+%     powerData = energyData.analysisDataST;
+%     powerDataBL = energyData.analysisDataBL;
+%     ERPData = erpData.dataST;
+%     psdData = energyData.dataST;
+%     
+%     psdDataBL = energyData.dataBL;
+%     rmsERPData = erpData.analysisData_ST;
+% elseif strcmp(timeEpoch,'PreTarget')
+%     powerData = energyData.analysisDataTG;
+%     powerDataBL = energyData.analysisDataBL;
+%     ERPData = erpData.dataTG;
+%     psdData = energyData.dataTG;
+%     psdDataBL = energyData.dataBL;
+%     rmsERPData = erpData.analysisData_TG;
+% end
+
 topoPlotType = 'LeftVsRight'; rhythmIDs = [1 2 3 4];
 
 [attData_Topo,ignData_Topo]= ...
@@ -184,16 +238,16 @@ for iPlot = 1:4
     switch iPlot
         case 1
             chanlocs = chanlocs_Unipolar;
-            showElecIDs = [showOccipitalElecsUnipolar showFrontalElecsUnipolar];
+            showElecIDs = [showOccipitalElecsUnipolar]; %#ok<*NBRAK>
         case 2
-            chanlocs = chanlocs_Bipolar;
-            showElecIDs = [showOccipitalElecsBipolar showFrontalElecsBipolar];
+            chanlocs = chanlocs_Unipolar;
+            showElecIDs = [showOccipitalElecsUnipolar];
         case 3
             chanlocs = chanlocs_Unipolar;
-            showElecIDs = [showOccipitalElecsUnipolar showFrontalElecsUnipolar];
+            showElecIDs = [showOccipitalElecsUnipolar];
         case 4
             chanlocs = chanlocs_Unipolar;
-            showElecIDs = [showOccipitalElecsUnipolar showFrontalElecsUnipolar];
+            showElecIDs = [showOccipitalElecsUnipolar];
     end
     cLim = cLims{iPlot}; cLimDiff = cLimsDiff{iPlot};
     
@@ -332,7 +386,7 @@ rhythmIDs = [1 2 3 4 5 6];
 
 colors = {'y','k','r','c'};
 
-for iBar = 2:length(attAnalysisData)-4
+for iBar = 2:length(attAnalysisData)-5
     if iBar ==1
         attData = attAnalysisData{iBar};
         ignData = ignAnalysisData{iBar};
@@ -350,7 +404,10 @@ for iBar = 2:length(attAnalysisData)-4
         diffData = 10*(attData-ignData); %dB
         mBar = mean(diffData,1,nanFlag);
         errorBar = std(diffData,[],1,nanFlag)./sqrt(length(diffData));
+        
     end
+            statData(iBar-1,:) = diffData;
+
     
     mBars(iBar-1) = mBar; %#ok<*AGROW>
     eBars(iBar-1) = errorBar;
@@ -361,6 +418,18 @@ for iBar = 2:length(attAnalysisData)-4
     ylim(hPlot,[-1 1])
     
 end
+
+NeuralMeasures = {'alpha','gamma'};
+statData(1,:) = -statData(1,:); % making the delta alpha powers negative
+allCombinations = nchoosek(1:size(statData,1),2);
+for iComb=1:size(allCombinations,1)
+    if strcmp(statTest,'RankSum')
+        pVals(iComb) = ranksum(statData(allCombinations(iComb,1),:),statData(allCombinations(iComb,2),:));
+    elseif strcmp(statTest,'t-test')
+        [~,pVals(iComb)] = ttest(statData(allCombinations(iComb,1),:),statData(allCombinations(iComb,2),:));
+    end
+end
+H = sigstar({[1,2]},pVals,0);
 
 errorbar(hPlot,1:length(mBars),mBars,eBars,'.','color','k');
 xlim(hPlot,[0 4]);
@@ -393,12 +462,11 @@ for iElecgroup = 1:2 % 1: Occipital PSD, 2: Frontal PSD
             hPlot = hPlot3(iSSVEPMethod+1,1);
     end
     
-    subjectIdx_psd = 1:26;
     [attData_psd,ignData_psd]= getAttendVsIgnoredCombinedData_FlickerStimuli...
-        (data_psd,refType,subjectIdx_psd,eotCodeIdx,nanFlag,...
+        (data_psd,refType,subjectIdx,eotCodeIdx,nanFlag,...
         elecsLeft,elecsRight);
     [attDataBL_psd,ignDataBL_psd]= getAttendVsIgnoredCombinedData_FlickerStimuli...
-        (dataBL_psd,refType,subjectIdx_psd,eotCodeIdx,nanFlag,...
+        (dataBL_psd,refType,subjectIdx,eotCodeIdx,nanFlag,...
         elecsLeft,elecsRight);
     
     deltaPSD = 10*(log10(attData_psd)-log10(ignData_psd));
@@ -415,7 +483,7 @@ end
 
 % Loop for plotting delta Powers for occipital and frontal electrodes for
 % flickering stimuli
-for iSSVEPMethod = 1:2
+for iSSVEPMethod = 2:2
     switch iSSVEPMethod
         case 1
             powerDataTMP = powerData;
@@ -426,6 +494,7 @@ for iSSVEPMethod = 1:2
     end
 
 for iElecGroup = 1:2
+    clear attAnalysisData ignAnalysisData attAnalysisDataBL ignAnalysisDataBL
 rhythmIDs = [1 2 3 4 5 6];
     switch iElecGroup
         case 1
@@ -438,23 +507,23 @@ rhythmIDs = [1 2 3 4 5 6];
             hPlot = hPlot3(iSSVEPMethod+1,2);
     end
 
-[attAnalysisData,ignAnalysisData]= getAttendVsIgnored_BarPlotData_FlickerStimuli...
+[attAnalysisData_Flick,ignAnalysisData_Flick]= getAttendVsIgnored_BarPlotData_FlickerStimuli...
     (rmsERPData,powerDataTMP,rhythmIDs,subjectIdx,eotCodeIdx,...
     nanFlag,elecsLeft,elecsRight);
-[attAnalysisDataBL,ignAnalysisDataBL]= getAttendVsIgnored_BarPlotData_FlickerStimuli...
+[attAnalysisDataBL_Flick,ignAnalysisDataBL_Flick]= getAttendVsIgnored_BarPlotData_FlickerStimuli...
     (rmsERPData,powerDataBLTMP,rhythmIDs,subjectIdx,eotCodeIdx,...
     nanFlag,elecsLeft,elecsRight); %#ok<*ASGLU>
 
 colors = {'k','r','c'};
-dataIDs = [2 3 8];
+dataIDs = [2 3 9];
 
 for iBar = 1:length(dataIDs)
     if plotBaselineSubtractedPowerFlag
-        attData = log10(attAnalysisData{dataIDs(iBar)})-log10(ignAnalysisDataBL{dataIDs(iBar)});
-        ignData = log10(ignAnalysisData{dataIDs(iBar)})-log10(ignAnalysisDataBL{dataIDs(iBar)});
+        attData = log10(attAnalysisData_Flick{dataIDs(iBar)})-log10(ignAnalysisDataBL_Flick{dataIDs(iBar)});
+        ignData = log10(ignAnalysisData_Flick{dataIDs(iBar)})-log10(ignAnalysisDataBL_Flick{dataIDs(iBar)});
     else
-        attData = log10(attAnalysisData{dataIDs(iBar)});
-        ignData = log10(ignAnalysisData{dataIDs(iBar)});
+        attData = log10(attAnalysisData_Flick{dataIDs(iBar)});
+        ignData = log10(ignAnalysisData_Flick{dataIDs(iBar)});
     end
     diffData = 10*(attData-ignData); %dB
     mBar = mean(diffData,1,nanFlag);
@@ -559,11 +628,11 @@ saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Fi
 figName1 = fullfile(saveFolder,[protocolType '_' subString  timeEpoch, '_' eotString '_tapers_' , ...
     num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz' 'badTrial_' badTrialStr]);
 
 
-saveas(hFig1,[figName1 '.fig'])
-print(hFig1,[figName1 '.tif'],'-dtiff','-r600')
+saveas(hFig1,[figName1 'v2.fig'])
+print(hFig1,[figName1 'v2.tif'],'-dtiff','-r600')
 
 end
 
@@ -590,7 +659,7 @@ for iRhythm = 1:4
             
             
         case 2
-            refType = 2;
+            refType = 1;
             topoData = data{refType}{rhythmIDs(2)};
             if strcmp(topoPlotStyle,'LeftVsRight')
                 attLoc = 2; ign_AttLoc = 1; att_TF = 1; ign_AttTF = 1;
@@ -658,14 +727,14 @@ for iRhythm = 1:4
                             topoDataTMP = mirrorTopoplotData(data_trialAvg{refType}{rhythmIDs(4)});
                     end
                     
-                    att_topoDataTMP_all(count,:,:) = squeeze(topoDataTMP(subjectIdx,:,eotCodeIdx,attLoc,att_TF));
-                    ign_topoDataTMP_all(count,:,:) = squeeze(topoDataTMP(subjectIdx,:,eotCodeIdx,ign_AttLoc,ign_AttTF));
+                    att_topoDataTMP_all_trialavg(count,:,:) = squeeze(topoDataTMP(subjectIdx,:,eotCodeIdx,attLoc,att_TF));
+                    ign_topoDataTMP_all_trialavg(count,:,:) = squeeze(topoDataTMP(subjectIdx,:,eotCodeIdx,ign_AttLoc,ign_AttTF));
                     count  = count+1;
                 end
             end
             
-            attData{iRhythm} = squeeze(mean(log10(mean(att_topoDataTMP_all,1,nanFlag)),2,nanFlag));
-            ignData{iRhythm} = squeeze(mean(log10(mean(ign_topoDataTMP_all,1,nanFlag)),2,nanFlag));
+            attData{iRhythm} = squeeze(mean(log10(mean(att_topoDataTMP_all_trialavg,1,nanFlag)),2,nanFlag));
+            ignData{iRhythm} = squeeze(mean(log10(mean(ign_topoDataTMP_all_trialavg,1,nanFlag)),2,nanFlag));
     end
 end
 end
@@ -696,8 +765,8 @@ end
 
 for i=1:length(attLoc)
     clear attDataTMP ignDataTMP
-    attDataTMP = squeeze(data{refType}(subjectIdx,elecNums{i},eotCodeIdx,attLoc(i),att_TF,:));
-    ignDataTMP = squeeze(data{refType}(subjectIdx,elecNums{i},eotCodeIdx,ign_AttLoc(i),ign_AttTF,:));
+    attDataTMP = squeeze(data{refType}(:,elecNums{i},eotCodeIdx,attLoc(i),att_TF,:));
+    ignDataTMP = squeeze(data{refType}(:,elecNums{i},eotCodeIdx,ign_AttLoc(i),ign_AttTF,:));
     
     attData_all{i} = attDataTMP;
     ignData_all{i}  = ignDataTMP;
@@ -707,8 +776,10 @@ if length(attData_all)== 1
     attData = squeeze(mean(attData_all{1},2,nanFlag));
     ignData = squeeze(mean(ignData_all{1},2,nanFlag));
 elseif length(attData_all)== 2
-    attData = squeeze(mean(cat(2,attData_all{1},attData_all{2}),2,nanFlag));
-    ignData = squeeze(mean(cat(2,ignData_all{1},ignData_all{2}),2,nanFlag));
+    attDataTMP2 = squeeze(mean(cat(2,attData_all{1},attData_all{2}),2,nanFlag));
+    ignDataTMP2 = squeeze(mean(cat(2,ignData_all{1},ignData_all{2}),2,nanFlag));
+    attData = attDataTMP2(subjectIdx,:);
+    ignData = ignDataTMP2(subjectIdx,:);
 end
 end
 
@@ -724,13 +795,14 @@ function [attData,ignData]= ...
 refType = 1;
 data{1} = rmsERPData{refType};
 data{2} = powerData{refType}{rhythmIDs(1)}; % Alpha Unipolar Ref
+data{3} = powerData{refType}{rhythmIDs(2)}; % Gamma Unipolar Ref
 data{4} = powerData{refType}{rhythmIDs(3)}; % Slow Gamma Unipolar Ref
 data{5} = powerData{refType}{rhythmIDs(4)}; % Fast Gamma Unipolar Ref
 
 refType = 2;
-data{3} = powerData{refType}{rhythmIDs(2)}; % Slow Gamma Unipolar Ref
-data{6} = powerData{refType}{rhythmIDs(5)}; % Slow Gamma Bipolar Ref
-data{7} = powerData{refType}{rhythmIDs(6)}; % Fast Gamma Bipolar Ref
+data{6} = powerData{refType}{rhythmIDs(2)}; %  Gamma Bipolar Ref
+data{7} = powerData{refType}{rhythmIDs(5)}; % Slow Gamma Bipolar Ref
+data{8} = powerData{refType}{rhythmIDs(6)}; % Fast Gamma Bipolar Ref
 
 attendLocs = [1 2]; % AttendLoc; 1- Right; 2-Left
 ssvepFreqs = [1 2]; % SSVEPFreq; 1- 24 Hz; 2- 32 Hz
@@ -755,7 +827,7 @@ diffData_all = cell(1,length(data));
 
 for i=1:length(attLoc)
     for iDataType = 1: length(data)
-        if iDataType == 3 || iDataType == 6 || iDataType == 7
+        if iDataType == 6 || iDataType == 7 || iDataType == 8
             elecs = elecNums{i}{2};
         else
             elecs = elecNums{i}{1};
@@ -828,13 +900,14 @@ function [attData,ignData]= ...
 refType = 1;
 data{1} = rmsERPData{refType};
 data{2} = powerData{refType}{rhythmIDs(1)}; % Alpha Unipolar Ref
+data{3} = powerData{refType}{rhythmIDs(2)}; %  Gamma Unipolar Ref
 data{4} = powerData{refType}{rhythmIDs(3)}; % SSVEP 24 Hz
 data{5} = powerData{refType}{rhythmIDs(4)}; % SSVEP 32 Hz
 
 refType = 2;
-data{3} = powerData{refType}{rhythmIDs(2)}; % Slow Gamma Bipolar Ref
-data{6} = powerData{refType}{rhythmIDs(5)}; % Slow Gamma Bipolar Ref
-data{7} = powerData{refType}{rhythmIDs(6)}; % Fast Gamma Bipolar Ref
+data{6} = powerData{refType}{rhythmIDs(2)}; %  Gamma Bipolar Ref
+data{7} = powerData{refType}{rhythmIDs(5)}; % Slow Gamma Bipolar Ref
+data{8} = powerData{refType}{rhythmIDs(6)}; % Fast Gamma Bipolar Ref
 
 attendLocs = [1 2]; % AttendLoc; 1- Right; 2-Left
 ssvepFreqs = [1 2]; % SSVEPFreq; 1- 24 Hz; 2- 32 Hz
@@ -856,7 +929,7 @@ for iAttendLoc = 1:2
         end
         
         for iDataType = 1: length(data)
-            if iDataType == 3 || iDataType == 6 || iDataType == 7
+            if iDataType == 6 || iDataType == 7 || iDataType == 8
                 elecs = elecNums{2};
             else
                 elecs = elecNums{1};

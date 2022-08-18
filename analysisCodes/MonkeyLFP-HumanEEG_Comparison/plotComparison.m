@@ -1,6 +1,6 @@
 function plotComparison
 
-load('E:\figure_1_and_3_data\Figure1Dataset_allAllStimulatedOri23_tapers23.mat')
+load('E:\Projects\Aritra_AttentionEEGProject\Figures\Mayo Project- Monkey V4 LFP Attention\figure_1_and_3_data\Figure1Dataset_allAllStimulatedOri23_tapers23.mat'); %#ok<LOAD>
 close all;
 hFig = figure(1);
 set(hFig,'units','normalized','outerposition',[0 0 1 1])
@@ -8,7 +8,7 @@ hPlotsFig.hPlot2 = getPlotHandles(1,2,[0.06 0.15 0.3 0.15],0.01,0.01,1);%linkaxe
 
 hPlotsFig.hPlot4 = getPlotHandles(1,2,[0.4 0.15 0.3 0.15],0.01,0.01,1);%linkaxes(hPlotsFig.hPlot4)
 
-hPlotsFig.hPlot6 = getPlotHandles(1,2,[0.75 0.14 0.2 0.12],0.01,0.01,1);linkaxes(hPlotsFig.hPlot6)
+hPlotsFig.hPlot6 = getPlotHandles(1,1,[0.75 0.14 0.1 0.12],0.01,0.01,1);linkaxes(hPlotsFig.hPlot6)
 
 psdData_BL = conv2Log(Figure1Dataset(1).psdData);
 psdData_ST = conv2Log(Figure1Dataset(2).psdData);
@@ -27,7 +27,7 @@ hold(hPlotsFig.hPlot2(1,2),'on')
 plot(hPlotsFig.hPlot2(1,2),freqVals_TG,10*(squeeze(mean(psdData_TG(1,:,:),2))-squeeze(mean(psdData_TG(2,:,:),2))),'LineWidth',1.5,'color',[0.8500 0.3250 0.0980])
 
 
-load('E:\figure_1_and_3_data\Figure3and4Dataset_allAllStimulatedOri23_tapers23_hiGamma122_198_ssvep20.mat');
+load('E:\Projects\Aritra_AttentionEEGProject\Figures\Mayo Project- Monkey V4 LFP Attention\figure_1_and_3_data\Figure3and4Dataset_allAllStimulatedOri23_tapers23_hiGamma122_198_ssvep20.mat');
 
 alphaPower = conv2Log([Figure3and4Dataset(4).rawData{1} Figure3and4Dataset(4).rawData{2}]);
 gammaPower = conv2Log([Figure3and4Dataset(3).rawData{1} Figure3and4Dataset(3).rawData{2}]);
@@ -37,24 +37,47 @@ deltaAlphaPower = 10*(alphaPower(:,1)-alphaPower(:,2));
 deltaGammaPower = 10*(gammaPower(:,1)-gammaPower(:,2));
 deltaSSVEPPower = 10*(ssvepPower(:,1)-ssvepPower(:,2));
 
-mDeltaPower_alpha = mean(deltaAlphaPower,1);semDeltaPower_alpha = std(deltaAlphaPower,[],1)./sqrt(size(deltaAlphaPower,1));
+mDeltaPower_alpha = -mean(deltaAlphaPower,1);semDeltaPower_alpha = std(deltaAlphaPower,[],1)./sqrt(size(deltaAlphaPower,1));
 mDeltaPower_gamma = mean(deltaGammaPower,1);semDeltaPower_gamma = std(deltaGammaPower,[],1)./sqrt(size(deltaGammaPower,1));
 mDeltaPower_SSVEP = mean(deltaSSVEPPower,1);semDeltaPower_SSVEP = std(deltaSSVEPPower,[],1)./sqrt(size(deltaSSVEPPower,1));
 
 barPlotData = [mDeltaPower_alpha mDeltaPower_gamma mDeltaPower_SSVEP];
 errorBarPlotData = [semDeltaPower_alpha semDeltaPower_gamma semDeltaPower_SSVEP];
 
-colors = {'k','m','g'};
+colors = {'k','r','c'};
 for iBar = 1:3
-    b1 = bar(iBar+1,barPlotData(iBar),colors{iBar},'parent',hPlotsFig.hPlot6(1,1)); hold(hPlotsFig.hPlot6(1,1),'on')
+    b1 = bar(iBar,barPlotData(iBar),colors{iBar},'parent',hPlotsFig.hPlot6(1,1)); hold(hPlotsFig.hPlot6(1,1),'on')
 end
-errorbar(hPlotsFig.hPlot6(1,1),2:4,barPlotData,errorBarPlotData,'.','color','k')
+errorbar(hPlotsFig.hPlot6(1,1),1:3,barPlotData,errorBarPlotData,'.','color','k')
 set(hPlotsFig.hPlot6(1,1),'XTick',1:5);
+
+dPowers(1,:) = deltaAlphaPower;
+dPowers(2,:) = deltaGammaPower;
+dPowers(3,:) = deltaSSVEPPower;
+
+NeuralMeasures = {'alpha','gamma', 'SSVEP'}; %#ok<*NASGU>
+for i=1:size(dPowers,1)
+[~,pVals_ttest]=ttest(dPowers(i,:));
+disp(['t-test' ':' NeuralMeasures{i} ' pVals = ' num2str(pVals_ttest)])
+end
+
+dPowers(1,:) = -dPowers(1,:); % making the delta alpha powers negative
+allCombinations = nchoosek(1:size(dPowers,1),2);
+for iComb=1:size(allCombinations,1)
+    %            if strcmp(statTest,'RankSum')
+    %                pVals(iComb) = ranksum(dPowers(allCombinations(iComb,1),:),dPowers(allCombinations(iComb,2),:));
+    %            elseif strcmp(statTest,'t-test')
+    [~,pVals(iComb)] = ttest(dPowers(allCombinations(iComb,1),:),dPowers(allCombinations(iComb,2),:));
+        disp (['t-test' ': ' NeuralMeasures{allCombinations(iComb,1)} ' & ' NeuralMeasures{allCombinations(iComb,2)} ' pVals = ' num2str(pVals(iComb))])
+
+    %            end
+end
+H = sigstar({[1,2],[1,3],[2,3]},pVals,0);
 
 xlabel(hPlotsFig.hPlot2(1,1),'Frequency (Hz)'); ylabel(hPlotsFig.hPlot2(1,1),'Change in Power (dB)');
 title(hPlotsFig.hPlot2(1,1),'Stim Onset');
-title(hPlotsFig.hPlot2(1,2),'Target Onset');
-title(hPlotsFig.hPlot6(1,1),'Target Onset');
+title(hPlotsFig.hPlot2(1,2),'PreTarget');
+title(hPlotsFig.hPlot6(1,1),'PreTarget');
 ylabel(hPlotsFig.hPlot6(1,1),'Change in Power (dB)');
 
 % legend
@@ -66,7 +89,7 @@ set(hPlotsFig.hPlot2,'box','off','TickDir','out','TickLength',tickLengthPlot,'fo
 % set(hPlotsFig.hPlot3,'box','off','TickDir','out','TickLength',tickLengthPlot,'fontSize',12)
 set(hPlotsFig.hPlot4,'box','off','TickDir','out','TickLength',tickLengthPlot,'fontSize',12)
 % set(hPlotsFig.hPlot5,'box','off','TickDir','out','TickLength',tickLengthPlot,'fontSize',12)
-set(hPlotsFig.hPlot6,'box','off','TickDir','out','TickLength',tickLengthPlot,'fontSize',12)
+set(hPlotsFig.hPlot6,'box','off','TickDir','out','TickLength',tickLengthPlot,'fontSize',12,'xTick',1:3,'yTick',[-2 0 2])
 
 % set(hPlotsFig.hPlot5(3,1),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',8);
 % set(hPlotsFig.hPlot6(3,1),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',8);
@@ -79,7 +102,7 @@ set(hPlotsFig.hPlot6,'box','off','TickDir','out','TickLength',tickLengthPlot,'fo
 % rescaleData(hPlotsFig.hPlot3(:,2),-1.000,0,[-10 5],12,2);
 rescaleData(hPlotsFig.hPlot2,0,100,[-5 5],12,0);
 rescaleData(hPlotsFig.hPlot4,0,200,[-5 5],12,0);
-rescaleData(hPlotsFig.hPlot6,0,6,[-2 3],12,0);
+rescaleData(hPlotsFig.hPlot6,0,4,[-2 2],12,0);
 % rescaleData(hP
 
 displayRange(hPlotsFig.hPlot2,[8 12],[-5 5],'k','solid-solid')
@@ -92,15 +115,13 @@ displayRange(hPlotsFig.hPlot2,[20 20],[-5 5],'g','solid-solid')
 % displayRange(hPlotsFig.hPlot4(2:3,:),[31 31],[-5 5],'c','solid-solid')
 
 
-stringLabels{1} = [];
-stringLabels{2} = '\alpha (8-12 Hz)';
-stringLabels{3} = '\gamma (42-78 Hz)';
-stringLabels{4} = 'SSVEP-20 Hz';
-stringLabels{5} = [];
+stringLabels{1} = 'alpha (8-12 Hz)';
+stringLabels{2} = 'gamma (42-78 Hz)';
+stringLabels{3} = 'SSVEP (20 Hz)';
 
-set(hPlotsFig.hPlot6(1,1),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',12);
+set(hPlotsFig.hPlot6(1,1),'XTickLabel',stringLabels,'XTickLabelRotation',45,'fontSize',14);
 
-figName = fullfile('E:\','PlotComparison');
+figName = fullfile('E:\','PlotComparison3');
 saveas(hFig,[figName '.fig'])
 print(hFig,[figName '.tif'],'-dtiff','-r600')
 

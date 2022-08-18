@@ -736,6 +736,7 @@ if strcmp(plotgrid,'on')
 end
 
 [x,y]     = pol2cart(Th,Rd);  % transform electrode locations from polar to cartesian coordinates
+% [x1,y1]     = pol2cart(Th,Rd);  % transform electrode locations from polar to cartesian coordinates
 plotchans = abs(plotchans);   % reverse indicated channel polarities
 allchansind = allchansind(plotchans);
 Th        = Th(plotchans);
@@ -748,6 +749,7 @@ if ~isempty(Values) & length(Values) > 1
     Values      = Values(plotchans);
     ContourVals = ContourVals(plotchans);
 end;
+
 
 %
 %%%%%%%%%%%%%%%%%% Read plotting radius from chanlocs  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1434,7 +1436,10 @@ set(gca, 'ylim', [-0.525 0.525]); set(plotax, 'ylim', [-0.525 0.525]);
 %%%%%%%%%%%%%%%%%%%%%%%% Mark electrode locations only %%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 ELECTRODE_HEIGHT = 2.1;  % z value for plotting electrode information (above the surf)
-
+% if length(plotchans)<15
+% else
+%       x= x1; y=y1;
+% end
 if strcmp(ELECTRODES,'on')   % plot electrodes as spots
   if isempty(EMARKER2CHANS)
     hp2 = plot3(y,x,ones(size(x))*ELECTRODE_HEIGHT,...

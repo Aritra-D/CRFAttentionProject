@@ -4,7 +4,7 @@
 
 function displayResults_AttendVsIgnored(protocolType,analysisMethodFlag,...
     subjectIdx,timeEpoch,eotCodeIdx,removeBadElectrodeData,...
-    plotBaselineSubtractedPowerFlag,topoplot_style,colorMap)
+    plotBaselineSubtractedPowerFlag,topoplot_style,colorMap,badTrialStr)
 
 close all;
 if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
@@ -39,7 +39,7 @@ numFreqs = length(freqRanges);
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '.mat']);
 
 if exist(fileName, 'file')
     load(fileName,'erpData','energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>

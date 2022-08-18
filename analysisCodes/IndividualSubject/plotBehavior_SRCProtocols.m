@@ -359,7 +359,7 @@ for i=1:numTF
         for k=1:length(uniqueOriVals)
             theseIndices = intersect(find([reactInfo.changeInOrientation]==uniqueOriVals(k)),tmp);
             if ~isempty(theseIndices)
-                xVal(count)  = uniqueOriVals(k);
+                xVal(count)  = uniqueOriVals(k); %#ok<*AGROW>
                 reactTimes(count) = mean([reactInfo(theseIndices).reactTime]);
                 count=count+1;
             end
@@ -373,65 +373,65 @@ end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [mBlockData,stdBlockData]=combineBlockData(blockData)
-numDays = length(blockData);
-maxBlocks=0; 
-for i=1:numDays
-    maxBlocks = max([maxBlocks length(blockData{i})]);
-end
-
-numTrialsPerBlock = cell(1,maxBlocks);
-
-for i=1:numDays
-    numBlocks = length(blockData{i});
-    
-    for j=1:numBlocks
-        numTrialsPerBlock{j} = [numTrialsPerBlock{j} blockData{i}(j)];
-    end
-end
-    
-mBlockData = zeros(1,maxBlocks);
-stdBlockData = zeros(1,maxBlocks);
-
-for i=1:maxBlocks
-    mBlockData(i) = mean(numTrialsPerBlock{i});
-    stdBlockData(i) = std(numTrialsPerBlock{i});
-end
-end
-function mEotByType = combineEotByType(eotByType)
-numDays = length(eotByType);
-sumEotByType=zeros(size(eotByType{1}));
-
-for i=1:numDays
-    sumEotByType = sumEotByType+eotByType{i};
-end
-
-mEotByType = sumEotByType/numDays;
-
-end
-function [allorientationValues,allCorrectResults] = combinePsyData(orientationValues,correctResults)
-numDays = length(orientationValues);
-numTFs = size(orientationValues{1},1);
-
-allorientationValues = cell(numTFs,2);
-allCorrectResults = cell(numTFs,2);
-for i=1:numTFs
-    for j=1:2
-        allorientationValues{i,j} = [];
-        allCorrectResults{i,j}  = [];
-    end
-end
-
-for i=1:numTFs
-    for j=1:2
-        for k=1:numDays
-            allorientationValues{i,j} = [allorientationValues{i,j} orientationValues{k}{i,j}];
-            allCorrectResults{i,j}  = [allCorrectResults{i,j}  correctResults{k}{i,j}];
-        end
-    end
-end
-
-end
+% function [mBlockData,stdBlockData]=combineBlockData(blockData)
+% numDays = length(blockData);
+% maxBlocks=0; 
+% for i=1:numDays
+%     maxBlocks = max([maxBlocks length(blockData{i})]);
+% end
+% 
+% numTrialsPerBlock = cell(1,maxBlocks);
+% 
+% for i=1:numDays
+%     numBlocks = length(blockData{i});
+%     
+%     for j=1:numBlocks
+%         numTrialsPerBlock{j} = [numTrialsPerBlock{j} blockData{i}(j)];
+%     end
+% end
+%     
+% mBlockData = zeros(1,maxBlocks);
+% stdBlockData = zeros(1,maxBlocks);
+% 
+% for i=1:maxBlocks
+%     mBlockData(i) = mean(numTrialsPerBlock{i});
+%     stdBlockData(i) = std(numTrialsPerBlock{i});
+% end
+% end
+% function mEotByType = combineEotByType(eotByType)
+% numDays = length(eotByType);
+% sumEotByType=zeros(size(eotByType{1}));
+% 
+% for i=1:numDays
+%     sumEotByType = sumEotByType+eotByType{i};
+% end
+% 
+% mEotByType = sumEotByType/numDays;
+% 
+% end
+% function [allorientationValues,allCorrectResults] = combinePsyData(orientationValues,correctResults)
+% numDays = length(orientationValues);
+% numTFs = size(orientationValues{1},1);
+% 
+% allorientationValues = cell(numTFs,2);
+% allCorrectResults = cell(numTFs,2);
+% for i=1:numTFs
+%     for j=1:2
+%         allorientationValues{i,j} = [];
+%         allCorrectResults{i,j}  = [];
+%     end
+% end
+% 
+% for i=1:numTFs
+%     for j=1:2
+%         for k=1:numDays
+%             allorientationValues{i,j} = [allorientationValues{i,j} orientationValues{k}{i,j}];
+%             allCorrectResults{i,j}  = [allCorrectResults{i,j}  correctResults{k}{i,j}];
+%         end
+%     end
+% end
+% 
+% end
 % function [xList,mReactTimeArray,stdReactTimeArray] = combineReactionTimeData(xValsAll,reactTimesAll)
 % 
 % numDays = length(reactTimesAll);
@@ -489,21 +489,21 @@ plot(xVal,yVal,'Marker','o','color',colorName,'lineStyle','none'); hold on;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function fileStr = getFileStr(subjectName,expDates,protocolNames,folderSourceString,gridType)
-
-for i=1:length(expDates)
-    load(fullfile(folderSourceString,'data',subjectName,gridType,expDates{i},protocolNames{i},'extractedData','LL.mat'));
-    
-    fileStr(i).azimuth0Deg     = LL.azimuth0Deg; %#ok<*AGROW>
-    fileStr(i).azimuth1Deg     = LL.azimuth1Deg;
-    fileStr(i).elevation0Deg   = LL.elevation0Deg;
-    fileStr(i).elevation1Deg   = LL.elevation1Deg;
-    fileStr(i).orientation0Deg = LL.baseOrientation0Deg;
-    fileStr(i).orientation1Deg = LL.baseOrientation1Deg;
-    fileStr(i).spatialFreq0CPD = LL.spatialFreq0CPD;
-    fileStr(i).spatialFreq1CPD = LL.spatialFreq1CPD;
-    fileStr(i).sigmaDeg = LL.sigmaDeg;
-    fileStr(i).radiusDeg = LL.radiusDeg;
-end
-end
+% function fileStr = getFileStr(subjectName,expDates,protocolNames,folderSourceString,gridType)
+% 
+% for i=1:length(expDates)
+%     load(fullfile(folderSourceString,'data',subjectName,gridType,expDates{i},protocolNames{i},'extractedData','LL.mat'));
+%     
+%     fileStr(i).azimuth0Deg     = LL.azimuth0Deg; %#ok<*AGROW>
+%     fileStr(i).azimuth1Deg     = LL.azimuth1Deg;
+%     fileStr(i).elevation0Deg   = LL.elevation0Deg;
+%     fileStr(i).elevation1Deg   = LL.elevation1Deg;
+%     fileStr(i).orientation0Deg = LL.baseOrientation0Deg;
+%     fileStr(i).orientation1Deg = LL.baseOrientation1Deg;
+%     fileStr(i).spatialFreq0CPD = LL.spatialFreq0CPD;
+%     fileStr(i).spatialFreq1CPD = LL.spatialFreq1CPD;
+%     fileStr(i).sigmaDeg = LL.sigmaDeg;
+%     fileStr(i).radiusDeg = LL.radiusDeg;
+% end
+% end
 

@@ -1,6 +1,6 @@
 function [full_data] = getData_SRCLongProtocols(protocolType,gridType)
     capType = 'actiCap64';  
-    full_data = get_data_for_all_subjects(protocolType, gridType, capType);
+    get_data_for_all_subjects(protocolType, gridType, capType);
 end
 
 % Accessory Functions
@@ -37,10 +37,10 @@ end
 % Get MeanEnergy for different frequency bands
 function eValue = getMeanEnergyForAnalysis(mEnergy,freq,freqRange)
     posToAverage = intersect(find(freq>=freqRange(1)),find(freq<=freqRange(2)));
-    eValue   = sum(mEnergy(posToAverage));
+    eValue   = sum(mEnergy(posToAverage,:),1);
 end
 
-function [computed] = get_data_for_all_subjects(protocolType, gridType, cap_type)    
+function get_data_for_all_subjects(protocolType, gridType, cap_type)    
     [subjects, expDates, protocolNames, dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType, protocolType);
     grid_type = 'EEG';
     computed = cell(length(subjects),4);
@@ -111,6 +111,11 @@ function [computed] = get_data_for_all_subjects(protocolType, gridType, cap_type
         computed{subject_idx, 2} = unipolar_data;
         computed{subject_idx, 3} = bipolar_bad_electrodes;
         computed{subject_idx, 4} = bipolar_data;
+        
+        tmp_computed = computed(subject_idx,:);
+        folderSave = 'E:\';
+        saveFileName = fullfile(folderSave, [protocolType '_' gridType '_Subject_' num2str(subject_idx) '.mat']);
+        save(saveFileName,'tmp_computed')
         toc
     end    
 end
@@ -207,7 +212,7 @@ function [computed] = get_good_trials_for_all_tf(tf, analog_data, timeVals, tria
     params.pad      = -1;
     params.Fs       = 1000;
     params.fpass    = [0 250];
-    params.trialave = 1;
+    params.trialave = 0;
 
     for tf_idx = 1: length(tf)
         good_trial = get_good_trials(trials(:,tf_idx), bad_trials);
@@ -288,7 +293,7 @@ function [psd_data] = get_PSD_for_all_time_periods(t_map, analog_data, timeVals,
 end
 
 function [powers] = get_power(raw_PSD, freqVals, freq_ranges)
-    for iFreqRange=1:4
+    for iFreqRange=1:7
         powers{iFreqRange} = getMeanEnergyForAnalysis(raw_PSD, freqVals, freq_ranges{iFreqRange});
     end
 end

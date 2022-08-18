@@ -1,4 +1,4 @@
-function [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers)
+function [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr)
 
 [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType);
 
@@ -86,7 +86,7 @@ for iRef = 1:2
         electrodeList = getElectrodeList(capType,refType,1);
         
         % Get bad trials
-        badTrialFile = fullfile(folderSegment,'badTrials_v5.mat');
+        badTrialFile = fullfile(folderSegment,['badTrials_' badTrialStr '.mat']);
         if ~exist(badTrialFile,'file')
             disp('Bad trial file does not exist...');
             badElecs = []; badTrials=[];
@@ -155,7 +155,7 @@ for iRef = 1:2
                         if isempty(goodPos_stimOnset)
                             disp('No entries for this combination..')
                         else
-                            if iRef==1 && iElec ==1
+                            if iElec ==1
                                 disp([iEOTCode iAttendLoc iTF length(goodPos_stimOnset)])
                                 trialNums(iSub,iEOTCode,iAttendLoc,iTF) = length(goodPos_stimOnset);
                             end

@@ -15,6 +15,7 @@ Mapping Horizontal: [105:108 117:120 131:134 145:148 157:160 171:174 185:188 199
 Attention Protocols for 26 Subjects
 Subject Codes: 		[ AD  NN  NM SSP  SK  AB  LK  DG  SW  AR  SN  AM  SU ArD  UG  SS SNS  SG  MK  SR  SP  RG  IJ  SM SJP  SC]
 Gender:				[  M   F   M  M    M   M   F   F   M   M   M   M   F   M   F   M   F   F   F   M   M   M   F   F   M   F]
+Age:                [ 28  24  25  28  28  27  25  26  25  28  26  26  23  25  26  29  38  25  30  22  24  21  29  25  24  28 22 24]
 Eyes Open: 			[219 205  97 163 177 233 123 191 282 289 295 301 312 318 326 336 343 351 357 378 109 404 410 418 440 455];
 Eyes Closed:		[220 206  98 164 178 234 124 192 283 290 296 302 313 319 327 337 344 352 358 379 110 405 411 419 441 456];
 SF-Ori: 			[221 207  99 165 179 235 125 193 284 291 297 303 310 321 328 338 345 353 359 380 111 406 412 420 442 457];

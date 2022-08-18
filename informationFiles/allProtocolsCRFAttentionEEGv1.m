@@ -543,6 +543,15 @@ clear index; index=458; deviceName{index} = 'BP'; subjectNames{index} = 'SC'; ex
 clear index; index=459; deviceName{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'SRC_001'; capLayout{index} = 'actiCap64'; stimType{index} = 7; % Behavior + EEG
 clear index; index=460; deviceName{index} = 'BP'; subjectNames{index} = 'SC'; expDates{index} = '080322'; protocolNames{index} = 'SRC_002'; capLayout{index} = 'actiCap64'; stimType{index} = 7; % Behavior + EEG
 
+clear index; index=461; deviceName{index} = 'BP'; subjectNames{index} = 'MD'; expDates{index} = '160616'; protocolNames{index} = 'GRF_0001'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+clear index; index=462; deviceName{index} = 'BP'; subjectNames{index} = 'MD'; expDates{index} = '160616'; protocolNames{index} = 'GRF_0002'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+clear index; index=463; deviceName{index} = 'BP'; subjectNames{index} = 'MD'; expDates{index} = '160616'; protocolNames{index} = 'GRF_0003'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+
+clear index; index=464; deviceName{index} = 'BP'; subjectNames{index} = 'DJ'; expDates{index} = '140616'; protocolNames{index} = 'GRF_0001'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+clear index; index=465; deviceName{index} = 'BP'; subjectNames{index} = 'DJ'; expDates{index} = '140616'; protocolNames{index} = 'GRF_0002'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+clear index; index=466; deviceName{index} = 'BP'; subjectNames{index} = 'DJ'; expDates{index} = '140616'; protocolNames{index} = 'GRF_0003'; capLayout{index} = 'actiCap64'; stimType{index} = 4; % Behavior + EEG
+
+
 % clear index; index=291; deviceName{index} = 'BP'; subjectNames{index} = 'SR'; expDates{index} = '160222'; protocolNames{index} = 'SRC_002'; capLayout{index} = 'actiCap64'; stimType{index} = 7; % Behavior + EEG
 % clear index; index=292; deviceName{index} = 'BP'; subjectNames{index} = 'SP'; expDates{index} = '220222'; protocolNames{index} = 'SRC_001'; capLayout{index} = 'actiCap64'; stimType{index} = 7; % Behavior + EEG
 % 

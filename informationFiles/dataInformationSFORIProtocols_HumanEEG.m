@@ -13,8 +13,6 @@ end
 
 [allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType 'v1']);
 
-% stimList = cell(1,4);
-
 if strcmp(protocolType, 'SFOri-MappingGroup')
     protocolList{1} = 99;   maxGamma_SFIndex{1} = 2;  maxGamma_OriIndex{1} = 4;  % NM
     protocolList{2} = 111;  maxGamma_SFIndex{2} = 2;  maxGamma_OriIndex{2} = 2;  % SP

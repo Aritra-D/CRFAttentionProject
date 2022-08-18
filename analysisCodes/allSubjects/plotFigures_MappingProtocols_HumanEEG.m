@@ -138,10 +138,10 @@ if plotConsolidatedResultsFlag
                     STPower = squeeze(energyData.analysisDataST{1,refType}{1,neuralMeasure}(:,j,TF,:));
                     colorRange = colorAxis_alpha; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
                 case 2
-                    neuralMeasure = 2; refType = 2; TF = 1;
+                    neuralMeasure = 2; refType = 1; TF = 1;
                     BLPower = squeeze(energyData.analysisDataBL{1,refType}{1,neuralMeasure}(:,j,TF,:));
                     STPower = squeeze(energyData.analysisDataST{1,refType}{1,neuralMeasure}(:,j,TF,:));
-                    colorRange = colorAxis_gamma; chanLocs = chanlocs_Bipolar; showElecs = elecBipolarList;
+                    colorRange = colorAxis_gamma; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
                 case 3
                     neuralMeasures = [3 4]; refType = 1; TF = 2;
                     for k=1:length(neuralMeasures)
@@ -205,7 +205,7 @@ if plotConsolidatedResultsFlag
                 BLPower = squeeze(mean(energyData.analysisDataBL{1,refType}{1,neuralMeasure}(:,:,TF,elecs),4,nanFlag));
                 STPower = squeeze(mean(energyData.analysisDataST{1,refType}{1,neuralMeasure}(:,:,TF,elecs),4,nanFlag));
                 
-            case 2; elecs = elecUnipolarList; neuralMeasure = 2;  refType = 2; TF = 1; hPlot = hPlot2(2,1); markerStyle = '-o'; color = colors{neuralMeasure};
+            case 2; elecs = elecUnipolarList; neuralMeasure = 2;  refType = 1; TF = 1; hPlot = hPlot2(2,1); markerStyle = '-o'; color = colors{neuralMeasure};
                 BLPower = squeeze(mean(energyData.analysisDataBL{1,refType}{1,neuralMeasure}(:,:,TF,elecs),4,nanFlag));
                 STPower = squeeze(mean(energyData.analysisDataST{1,refType}{1,neuralMeasure}(:,:,TF,elecs),4,nanFlag));
                 
@@ -256,18 +256,18 @@ if plotConsolidatedResultsFlag
             color,'MarkerFaceColor',color,...
             'LineWidth',1.5); hold(hPlot, 'on');
         
-        if SFOriDataFlag
-            color = 'g';
-            errorbar(hPlot,stimList(1),mean_deltaPower_FS_allGroups(i), sem_deltaPower_FS_allGroups(i),...
-                'o','color',color,'MarkerSize',10,'MarkerEdgeColor',...
-                color,'MarkerFaceColor',color,...
-                'LineWidth',1.5); hold(hPlot, 'on');
-            color = 'b';
-            errorbar(hPlot,stimList(1),mean_deltaPower_FS_AttentionGroup(i), sem_deltaPower_FS_AttentionGroup(i),...
-                'o','color',color,'MarkerSize',10,'MarkerEdgeColor',...
-                color,'MarkerFaceColor',color,...
-                'LineWidth',1.5); hold(hPlot, 'on');
-        end
+%         if SFOriDataFlag
+%             color = 'g';
+%             errorbar(hPlot,stimList(1),mean_deltaPower_FS_allGroups(i), sem_deltaPower_FS_allGroups(i),...
+%                 'o','color',color,'MarkerSize',10,'MarkerEdgeColor',...
+%                 color,'MarkerFaceColor',color,...
+%                 'LineWidth',1.5); hold(hPlot, 'on');
+%             color = 'b';
+%             errorbar(hPlot,stimList(1),mean_deltaPower_FS_AttentionGroup(i), sem_deltaPower_FS_AttentionGroup(i),...
+%                 'o','color',color,'MarkerSize',10,'MarkerEdgeColor',...
+%                 color,'MarkerFaceColor',color,...
+%                 'LineWidth',1.5); hold(hPlot, 'on');
+%         end
     end
     
     fontSize = 12;
@@ -281,6 +281,11 @@ if plotConsolidatedResultsFlag
     ylim(hPlot2(1,1),[-4 0]);
     ylim(hPlot2(2,1),[-1 2]);
     ylim(hPlot2(3,1),[-2 20]);
+
+    yline(hPlot2(2,1),0,'--k','LineWidth',1.2);
+    yline(hPlot2(3,1),0,'--k','LineWidth',1.2);
+    yline(hPlot2(1,1),-2,'--k','LineWidth',1.2);
+
     
     xlabel(hPlot2(3,1),'azi/ele/diam (degree)')
     ylabel(hPlot2(3,1),'Change in Power (dB)')
@@ -316,6 +321,10 @@ if plotConsolidatedResultsFlag
         end
     end
     
+    annotation('textbox',[0.0 0.92 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','A','fontWeight','bold','fontSize',28);
+    annotation('textbox',[0.69 0.92 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','B','fontWeight','bold','fontSize',28);
+    annotation('textbox',[0.69 0.61 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','C','fontWeight','bold','fontSize',28);
+    annotation('textbox',[0.69 0.32 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','D','fontWeight','bold','fontSize',28);
     
     
     
@@ -363,7 +372,7 @@ else
         end
     end
     
-    fontSize = 12;
+    fontSize = 14;
     strList = {'FS','2 ','4 ','6 ','8 '};
     for j=1:5
         if j==1
@@ -528,8 +537,8 @@ figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx))...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
     '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz']);
-saveas(hFig,[figName '.fig'])
-print(hFig,[figName '.tif'],'-dtiff','-r600')
+saveas(hFig,[figName 'v2.fig'])
+print(hFig,[figName 'v2.tif'],'-dtiff','-r600')
 
 end
 
@@ -608,12 +617,12 @@ nanFlag = 'omitnan';
 % compute power only for  max Gamma SF-Ori condition
 
 BLPower{1} = squeeze(energyData.analysisDataBL_maxGamma{1,1}{1,1}(:,1,:));
-BLPower{2} = squeeze(energyData.analysisDataBL_maxGamma{1,2}{1,2}(:,1,:));
+BLPower{2} = squeeze(energyData.analysisDataBL_maxGamma{1,1}{1,2}(:,1,:));
 BLPower{3} = squeeze(energyData.analysisDataBL_maxGamma{1,1}{1,4}(:,2,:));
 BLPower{4} = squeeze(energyData.analysisDataBL_trialAvg_maxGamma{1,1}{1,4}(:,2,:));
 
 STPower{1} = squeeze(energyData.analysisDataST_maxGamma{1,1}{1,1}(:,1,:));
-STPower{2} = squeeze(energyData.analysisDataST_maxGamma{1,2}{1,2}(:,1,:));
+STPower{2} = squeeze(energyData.analysisDataST_maxGamma{1,1}{1,2}(:,1,:));
 STPower{3} = squeeze(energyData.analysisDataST_maxGamma{1,1}{1,4}(:,2,:));
 STPower{4} = squeeze(energyData.analysisDataST_trialAvg_maxGamma{1,1}{1,4}(:,2,:));
 
@@ -621,7 +630,7 @@ for j = 1: length(neuralMeasures) % 1- alpha, 2- gamma, 3- slow gamma, 4- fast g
     if j==1
         colorRange = colorAxis_alpha; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
     elseif j==2
-        colorRange = colorAxis_gamma; chanLocs = chanlocs_Bipolar; showElecs = elecBipolarList;
+        colorRange = colorAxis_gamma; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
     elseif j==3
         colorRange = [-1 10]; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
     elseif j==4

@@ -26,7 +26,7 @@ capLayout = capLayouts(protocolIDs(end));
 freqRanges{1} = [8 12]; % alpha
 freqRanges{2} = [20 34]; % slow gamma
 freqRanges{3} = [36 66]; % fast gamma
-freqRanges{4} = [20 66]; % slow+ fast gamma
+freqRanges{4} = [25 70]; % slow+ fast gamma
 freqRanges{5} = [104 248]; % hi-gamma
 freqRanges{6} = [32 32];  % SSVEP
 numFreqs = length(freqRanges);
@@ -273,11 +273,12 @@ for iRefScheme = 1:2
             if strcmp(analysisType,'MT') && plotdPSDFlag
                 plot(hPlotsFig.hPlot2(iSF,iOri),freqVals,10*(squeeze(dataBL-dataBL)),'-k','LineWidth',1.5);hold(hPlotsFig.hPlot2(iSF,iOri),'on');
                 plot(hPlotsFig.hPlot2(iSF,iOri),freqVals,10*(squeeze(dataST(iSF,iOri,:))-dataBL),'-b','LineWidth',1.5);
-                for i=1:numFreqs-2
-                    textString = {'\alpha','SG','FG','\gamma'};
-                    powerValsCommonBL = mean(mean(mean(squeeze(powerValsBL{i}(:,1,:,:)),3),2),1);
-                    deltapowerValsTMP = 10*(squeeze(mean(powerValsST{i}(:,1,iSF,iOri),1)) - powerValsCommonBL);
-                    text(0.5,0.4-0.07*i,[textString{i} ' = ' num2str(round(deltapowerValsTMP,2))],'unit','normalized','fontsize',10,'fontweight','bold','parent',hPlotsFig.hPlot2(iSF,iOri));
+                NeuralMeasureIDs = [1 4];
+                for i=1:length(NeuralMeasureIDs)
+                    textString = {'\alpha','\gamma'};
+                    powerValsCommonBL = mean(mean(mean(squeeze(powerValsBL{NeuralMeasureIDs(i)}(:,1,:,:)),3),2),1);
+                    deltapowerValsTMP = 10*(squeeze(mean(powerValsST{NeuralMeasureIDs(i)}(:,1,iSF,iOri),1)) - powerValsCommonBL);
+                    text(0.3,0.4-0.07*i,[textString{i} ' = ' num2str(round(deltapowerValsTMP,2))],'unit','normalized','fontsize',10,'fontweight','bold','parent',hPlotsFig.hPlot2(iSF,iOri));
                 end
             end
             xlim(hPlotsFig.hPlot2(iSF,iOri),freqLims);
@@ -444,7 +445,7 @@ for iRefScheme = 1:2
         ylabel(hPlotsFig.hPlot1(2),'log_1_0 (Power(\muV^2))')
     end
     
-    
+%     
     tickLength = 2*get(hPlotsFig.hPlot1(1,1),'TickLength');
     set(hPlotsFig.hPlot1,'box','off','TickDir','out','TickLength',tickLength)
     set(hPlotsFig.hPlot2,'box','off','TickDir','out','TickLength',2*tickLength)
@@ -485,13 +486,13 @@ for iRefScheme = 1:2
     
     displayRange(hPlotsFig.hPlot1,[8 12],getYLims(hPlotsFig.hPlot1),[0.25 0.25 0.25],'solid-solid')
     displayRange(hPlotsFig.hPlot1(1),[20 34],getYLims(hPlotsFig.hPlot1),[0.75 0 0.75],'solid-solid')
-    displayRange(hPlotsFig.hPlot1(1),[36 66],getYLims(hPlotsFig.hPlot1),[0.9290 0.6940 0.1250],'dash-dash')
-    displayRange(hPlotsFig.hPlot1(2),[32 32],getYLims(hPlotsFig.hPlot1),[0 0 0],'solid-solid')
-    displayRange(hPlotsFig.hPlot1(2),[32 32],getYLims(hPlotsFig.hPlot1),[0 0 0],'dash-dash')
+%     displayRange(hPlotsFig.hPlot1(1),[36 66],getYLims(hPlotsFig.hPlot1),[0.9290 0.6940 0.1250],'dash-dash')
+    displayRange(hPlotsFig.hPlot1(2),[32 32],getYLims(hPlotsFig.hPlot1),'c','solid-solid')
+%     displayRange(hPlotsFig.hPlot1(2),[32 32],getYLims(hPlotsFig.hPlot1),'c','solid-solid')
     
-    displayRange(hPlotsFig.hPlot2,[8 12],getYLims(hPlotsFig.hPlot2),[0.25 0.25 0.25],'solid-solid')
-    displayRange(hPlotsFig.hPlot2,[20 34],getYLims(hPlotsFig.hPlot2),[0.75 0 0.75],'solid-solid')
-    displayRange(hPlotsFig.hPlot2,[36 66],getYLims(hPlotsFig.hPlot2),[0.9290 0.6940 0.1250],'dash-dash')
+    displayRange(hPlotsFig.hPlot2,[8 12],getYLims(hPlotsFig.hPlot2),'k','solid-solid')
+    displayRange(hPlotsFig.hPlot2,[25 70],getYLims(hPlotsFig.hPlot2),'r','solid-solid')
+%     displayRange(hPlotsFig.hPlot2,[36 66],getYLims(hPlotsFig.hPlot2),[0.9290 0.6940 0.1250],'dash-dash')
     
     rescaleData(hPlotsFig.hPlot1,0,100,getYLims(hPlotsFig.hPlot1),14);
     rescaleData(hPlotsFig.hPlot2,0,100,getYLims(hPlotsFig.hPlot2),14);
@@ -511,7 +512,7 @@ for iRefScheme = 1:2
     end
     
     legend(hPlotsFig.hPlot1(1),'Eyes Open','Eyes Closed','Location','best')
-    legend(hPlotsFig.hPlot1(2),'Baseline Period [-0.5s to 0s]','Stimulus Period [0.25s to 0.75s]','Location','best')
+%     legend(hPlotsFig.hPlot1(2),'Baseline Period [-0.5s to 0s]','Stimulus Period [0.25s to 0.75s]','Location','best')
     
     if saveFigureFlag
         saveas(hFig,[figName '.fig'])

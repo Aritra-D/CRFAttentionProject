@@ -147,7 +147,7 @@ for iRef = 1:2
                     [tmpEBL,freqValsBL] = mtspectrumc(x.analogData(goodPos1,blPos)',params);
                     [tmpEST,freqValsST] = mtspectrumc(x.analogData(goodPos1,stPos)',params);
                     
-                    [tmpEBL_maxGamma,~] = mtspectrumc(x.analogData(goodPos2,blPos)',params);
+                    [tmpEBL_maxGamma,~] = mtspectrumc(x.analogData(goodPos1,blPos)',params);
                     [tmpEST_maxGamma,~] = mtspectrumc(x.analogData(goodPos2,stPos)',params);
                     
                     if isequal(freqValsBL,freqValsST)
@@ -157,7 +157,7 @@ for iRef = 1:2
                     if iTF == 1
                         tfLeft = 0; tfRight = 0;
                     elseif iTF == 2
-                        tfLeft = unique(freqRanges{3}/2); tfRight = unique(freqRanges{4}/2);
+                        tfLeft = unique(freqRanges{4}/2); tfRight = unique(freqRanges{4}/2);
                     end
                     
                     
