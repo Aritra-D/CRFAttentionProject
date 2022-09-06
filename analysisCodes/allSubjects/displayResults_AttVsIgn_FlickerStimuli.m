@@ -741,8 +741,8 @@ for iCount = 1: length(attendLocs)*length(ssvepFreqs)
 end
 
 if strcmp(neuralMeasure,'alpha')||strcmp(neuralMeasure,'gamma')
-attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(attData_allcondTMP(1:3,:,:),1,nanFlag)),2,nanFlag));
-ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(ignData_allcondTMP(1:3,:,:),1,nanFlag)),2,nanFlag));
+attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(attData_allcondTMP([1 3],:,:),1,nanFlag)),2,nanFlag));
+ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(ignData_allcondTMP([1 3],:,:),1,nanFlag)),2,nanFlag));
 elseif strcmp(neuralMeasure,'SSVEP')
 attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(attData_allcondTMP,1,nanFlag)),2,nanFlag));
 ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(ignData_allcondTMP,1,nanFlag)),2,nanFlag));
