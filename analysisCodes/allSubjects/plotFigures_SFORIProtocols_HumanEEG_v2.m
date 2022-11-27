@@ -1,6 +1,6 @@
 % This version only analyzes total Gamma for Unipolar Ref Scheme 
 function plotFigures_SFORIProtocols_HumanEEG_v2(protocolType,...
-    SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,topoplot_style)
+    SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,topoplot_style,badTrialStr)
 
 close all;
 
@@ -22,15 +22,17 @@ freqRanges{6} = [44 56];   % Fast Gamma
 freqRanges{7} = [102 250]; % High Gamma
 
 numFreqs = length(freqRanges); %#ok<*NASGU>
+removeBadEyeTraialsFlag = 0;
+
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     [protocolType '_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_v2.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_v2_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTraialsFlag) '.mat']);
 if exist(fileName, 'file')
     load(fileName,'energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = ...
-        getData_SFORIProtocols(protocolType,gridType,timingParamters,tapers,freqRanges);
+        getData_SFORIProtocols(protocolType,gridType,timingParamters,tapers,freqRanges,badTrialStr,removeBadEyeTraialsFlag);
     save(fileName,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
 end
 
@@ -54,8 +56,8 @@ if SSVEPAnalysisMethod == 2
 end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
-subjectIdsWithRefAdjacentElecArtifacts = 12:28; 
-declaredBadElectrodes = [8 9 10 11 43 44]; %  13 47 52 15 50 54
+subjectIdsWithRefAdjacentElecArtifacts = [12:28]; 
+declaredBadElectrodes = [8 9 10 11 43 44];%[8 9 10 11 43 44]; %  13 47 52 15 50 54
 
 if removeBadElectrodeData
     for iSub = 1:length(subjectIdx)
@@ -382,10 +384,10 @@ saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Fi
 figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx)) '_' protocolType '_tapers_',num2str(tapers(2)) '_' ssvepMethod...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr]);
 
-saveas(hFig1,[figName 'v4.fig'])
-print(hFig1,[figName 'v4.tif'],'-dtiff','-r600')
+saveas(hFig1,[figName 'v5.fig'])
+print(hFig1,[figName 'v5.tif'],'-dtiff','-r600')
 
 
 end

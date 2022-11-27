@@ -11,6 +11,7 @@ if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='EEG';      end
 
 tapers = [1 1];
+removeBadEyeTrialsFlag =0;
 
 timingParamters.blRange = [-1.000 0];
 timingParamters.stRange = [0.250 1.250];
@@ -39,13 +40,13 @@ numFreqs = length(freqRanges);
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTrialsFlag) '.mat']);
 
 if exist(fileName, 'file')
     load(fileName,'erpData','energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers,badTrialStr);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParamters,tapers,badTrialStr,removeBadEyeTrialsFlag);
     save(fileName,'erpData','fftData','energyData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
@@ -619,18 +620,18 @@ for i=1:length(attLoc)
         else
             elecs = elecNums{i}{1};
         end
-        attData_all{1,iDataType}(:,i) = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,attLoc(i),att_TF),2,nanFlag));
-        ignData_all{1,iDataType}(:,i) = squeeze(mean(data{iDataType}(subjectIdx,elecs,eotCodeIdx,ign_AttLoc(i),ign_AttTF),2,nanFlag));
+        attData_all{1,iDataType}(:,:,i) = squeeze(data{iDataType}(subjectIdx,elecs,eotCodeIdx,attLoc(i),att_TF));
+        ignData_all{1,iDataType}(:,:,i) = squeeze(data{iDataType}(subjectIdx,elecs,eotCodeIdx,ign_AttLoc(i),ign_AttTF));
     end
 end
 
-if size(attData_all{1},2) == 1
+if size(attData_all{1},3) == 1
     attData = attData_all;
     ignData = ignData_all;
-elseif size(attData_all{1},2) == 2
+elseif size(attData_all{1},3) == 2
     for i = 1:size(attData_all,2)
-        attData{1,i} = mean(attData_all{1,i},2,nanFlag);
-        ignData{1,i} = mean(ignData_all{1,i},2,nanFlag);
+        attData{1,i} = mean(mean(attData_all{1,i},3,nanFlag),2,nanFlag);
+        ignData{1,i} = mean(mean(ignData_all{1,i},3,nanFlag),2,nanFlag);
     end
 end
 end

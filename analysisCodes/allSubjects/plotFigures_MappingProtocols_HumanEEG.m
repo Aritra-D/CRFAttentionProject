@@ -1,5 +1,5 @@
 function plotFigures_MappingProtocols_HumanEEG(protocolType2,...
-    SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,plotConsolidatedResultsFlag,topoplot_style)
+    SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,plotConsolidatedResultsFlag,topoplot_style,badTrialStr)
 
 close all;
 
@@ -38,18 +38,18 @@ else
     hPlot2 = getPlotHandles(3,3,[0.59 0.1 0.4 0.85],0.04,0.06,1);
 end
 
-plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style)
-
+plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style,badTrialStr)
+removeBadEyeTrialsFlag = 0;
 fileName2 = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     [protocolType2 '_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTrialsFlag) '.mat']);
 
 
 fileName3 = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     ['SFOri-Summary_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTrialsFlag) '.mat']);
 
 if exist(fileName2, 'file')
     load(fileName2,'energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
@@ -62,8 +62,8 @@ if exist(fileName2, 'file')
     end
 else
     [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = ...
-        getData_MappingProtocols(protocolType2,gridType,timingParameters,tapers,freqRanges);
-    save(fileName,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
+        getData_MappingProtocols(protocolType2,gridType,timingParameters,tapers,freqRanges,badTrialStr,removeBadEyeTrialsFlag);
+    save(fileName2,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
 end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
@@ -536,28 +536,29 @@ figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx))...
     '_' protocolType2 '_tapers_',num2str(tapers(2)) '_' ssvepMethod...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz']);
-saveas(hFig,[figName 'v2.fig'])
-print(hFig,[figName 'v2.tif'],'-dtiff','-r600')
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr]);
+saveas(hFig,[figName 'v3.fig'])
+print(hFig,[figName 'v3.tif'],'-dtiff','-r600')
 
 end
 
 % Accessory Functions
-function plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style)
-protocolType1 = 'SFOri'; gridType = 'EEG';
+function plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style,badTrialStr)
+protocolType1 = 'SFOri-MappingGroup'; gridType = 'EEG';
+removeBadEyeTrialsFlag =0;
 fileName1 = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
-    [protocolType1 '-MappingGroup_tapers_' num2str(tapers(2)) ...
+    [protocolType1 '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_v2_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTrialsFlag) '.mat']);
 
 
 if exist(fileName1, 'file')
     load(fileName1,'energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = ...
-        getData_SFORIProtocols(protocolType1,gridType,timingParameters,tapers,freqRanges);
-    save(fileName,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
+        getData_SFORIProtocols(protocolType1,gridType,timingParameters,tapers,freqRanges,badTrialStr,removeBadEyeTrialsFlag);
+    save(fileName1,'fftData','energyData','energyDataTF','freqRanges','badHighPriorityElecs','badElecs')
 end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN

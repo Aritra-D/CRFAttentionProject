@@ -1,4 +1,4 @@
-function [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr)
+function [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr,removeBadEyeTrialsFlag)
 
 [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType);
 
@@ -89,37 +89,36 @@ for iRef = 1:2
         badTrialFile = fullfile(folderSegment,['badTrials_' badTrialStr '.mat']);
         if ~exist(badTrialFile,'file')
             disp('Bad trial file does not exist...');
-            badElecs = []; badTrials=[];
+            badElecs = []; badTrials=[]; badTrialsUnique.badEyeTrials = [];
         else
-            [badTrials,badElectrodes] = loadBadTrials(badTrialFile);
+            [badTrials,badElectrodes,badTrialsUnique] = loadBadTrials(badTrialFile);
             badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]);
             disp([num2str(length(badTrials)) ' bad trials']);
-        end
-        
-        highPriorityElectrodeNums = getHighPriorityElectrodes(capType);
-        
-        if strcmp(refType,'unipolar')
-            badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityElectrodeNums,badElecsAll);
-            badElecs{iRef}{iSub} = intersect(setdiff(analogChannelsStored,photoDiodeChannels),badElecsAll);
-            disp(['Unipolar, all bad elecs: ' num2str(length(badElecsAll)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityElectrodeNums,badElecsAll))) ]);
+            highPriorityElectrodeNums = getHighPriorityElectrodes(capType);
             
-        elseif strcmp(refType,'bipolar')
-            count =1; badBipolarElecs = [];
-            for iBipolarElec = 1:length(electrodeList)
-                if any(electrodeList{iBipolarElec}{1}(1) == badElecsAll) || any(electrodeList{iBipolarElec}{1}(2) == badElecsAll)
-                    badBipolarElecs(count) = iBipolarElec;
-                    count = count+1;
+            if strcmp(refType,'unipolar')
+                badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityElectrodeNums,badElecsAll);
+                badElecs{iRef}{iSub} = intersect(setdiff(analogChannelsStored,photoDiodeChannels),badElecsAll);
+                disp(['Unipolar, all bad elecs: ' num2str(length(badElecsAll)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityElectrodeNums,badElecsAll))) ]);
+                
+            elseif strcmp(refType,'bipolar')
+                count =1; badBipolarElecs = [];
+                for iBipolarElec = 1:length(electrodeList)
+                    if any(electrodeList{iBipolarElec}{1}(1) == badElecsAll) || any(electrodeList{iBipolarElec}{1}(2) == badElecsAll)
+                        badBipolarElecs(count) = iBipolarElec;
+                        count = count+1;
+                    end
                 end
+                
+                if ~exist('badBipolarElecs','var')
+                    badBipolarElecs = [];
+                end
+                
+                badElecs{iRef}{iSub} = badBipolarElecs;
+                highPriorityBipolarElectrodeNums = [93 94 101 102 96 97 111 107 112];
+                badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityBipolarElectrodeNums,badBipolarElecs);
+                disp(['Bipolar, all bad elecs: ' num2str(length(badBipolarElecs)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityBipolarElectrodeNums,badBipolarElecs))) ]);
             end
-            
-            if ~exist('badBipolarElecs','var')
-                badBipolarElecs = [];
-            end
-            
-            badElecs{iRef}{iSub} = badBipolarElecs;
-            highPriorityBipolarElectrodeNums = [93 94 101 102 96 97 111 107 112];
-            badHighPriorityElecs{iRef}{iSub} = intersect(highPriorityBipolarElectrodeNums,badBipolarElecs);
-            disp(['Bipolar, all bad elecs: ' num2str(length(badBipolarElecs)) '; all high-priority bad elecs: ' num2str(length(intersect(highPriorityBipolarElectrodeNums,badBipolarElecs))) ]);
         end
         
         % main Loop
@@ -148,9 +147,13 @@ for iRef = 1:2
                 for iAttendLoc = 1: length(aValsUnique)
                     for iTF = 1: length(tValsUnique)
                         clear goodPos_stimOnset goodPos_targetOnset
-                        goodPos_stimOnset = setdiff(parameterCombinations.stimOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
-                        goodPos_targetOnset = setdiff(parameterCombinations.targetOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
-                        
+                        if removeBadEyeTrialsFlag
+                            goodPos_stimOnset = setdiff(parameterCombinations.stimOnset{c,iTF,iEOTCode,iAttendLoc,s},union(badTrials,badTrialsUnique.badEyeTrials));
+                            goodPos_targetOnset = setdiff(parameterCombinations.targetOnset{c,iTF,iEOTCode,iAttendLoc,s},union(badTrials,badTrialsUnique.badEyeTrials));
+                        else
+                            goodPos_stimOnset = setdiff(parameterCombinations.stimOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
+                            goodPos_targetOnset = setdiff(parameterCombinations.targetOnset{c,iTF,iEOTCode,iAttendLoc,s},badTrials);
+                        end
                         
                         if isempty(goodPos_stimOnset)
                             disp('No entries for this combination..')
@@ -209,7 +212,7 @@ for iRef = 1:2
                                     end
                                 end
                             end
-
+                            
                             psdBL(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEBL;
                             psdST(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEST;
                             psdTG(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG;
@@ -217,7 +220,7 @@ for iRef = 1:2
                             for iFreqRange=1:length(freqRanges)
                                 if iFreqRange == 3||iFreqRange == 4
                                     remove_NthHarmonicOnwards = 3;
-                                else 
+                                else
                                     remove_NthHarmonicOnwards = 2;
                                 end
                                 deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
@@ -230,19 +233,19 @@ for iRef = 1:2
                             % computing time-frequency spectrum by
                             % multi-taper method (computed for both static
                             % and counterphase stimuli)
-%                             [tmpEST_tf,tmpT_tf,freqVals_tf] = mtspecgramc(x.analogData.stimOnset(goodPos_stimOnset,:)',movingwin,params);
-%                             [tmpETG_tf,~,~] = mtspecgramc(x.analogData.targetOnset(goodPos_targetOnset,:)',movingwin,params);
-%                             
-%                             
-%                             timeVals_tf= tmpT_tf + timeVals(1);
-%                             energyST_tf = conv2Log(tmpEST_tf)';
-%                             energyTG_tf = conv2Log(tmpETG_tf)';
-%                             energyBL_tf = mean(energyST_tf(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
-%                             
-%                             mEnergyST_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf;
-%                             mEnergyTG_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf;
-%                             mEnergyBL_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf,1,length(timeVals_tf));
-%                             
+                            %                             [tmpEST_tf,tmpT_tf,freqVals_tf] = mtspecgramc(x.analogData.stimOnset(goodPos_stimOnset,:)',movingwin,params);
+                            %                             [tmpETG_tf,~,~] = mtspecgramc(x.analogData.targetOnset(goodPos_targetOnset,:)',movingwin,params);
+                            %
+                            %
+                            %                             timeVals_tf= tmpT_tf + timeVals(1);
+                            %                             energyST_tf = conv2Log(tmpEST_tf)';
+                            %                             energyTG_tf = conv2Log(tmpETG_tf)';
+                            %                             energyBL_tf = mean(energyST_tf(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
+                            %
+                            %                             mEnergyST_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf;
+                            %                             mEnergyTG_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf;
+                            %                             mEnergyBL_tf(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf,1,length(timeVals_tf));
+                            %
                             % Segmenting data according to timePos
                             dataBL_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,blPos),1)';
                             dataStimOnset_avg = mean(x.analogData.stimOnset(goodPos_stimOnset,stPos),1)';
@@ -252,7 +255,7 @@ for iRef = 1:2
                             [tmpEBL_avg,~] = mtspectrumc(dataBL_avg,params);
                             [tmpEST_avg,~] = mtspectrumc(dataStimOnset_avg,params);
                             [tmpETG_avg,~] = mtspectrumc(dataTargetOnset_avg,params);
-                           
+                            
                             psdBL_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEBL_avg;
                             psdST_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpEST_avg;
                             psdTG_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:) = tmpETG_avg;
@@ -260,12 +263,12 @@ for iRef = 1:2
                             for iFreqRange=1:length(freqRanges)
                                 if iFreqRange == 3||iFreqRange == 4
                                     remove_NthHarmonicOnwards = 3;
-                                else 
+                                else
                                     remove_NthHarmonicOnwards = 2;
                                 end
                                 deltaF_LineNoise = 2; deltaF_tfHarmonics = 0;
                                 badFreqPos = getBadFreqPos(freqVals,deltaF_LineNoise,deltaF_tfHarmonics,remove_NthHarmonicOnwards,tfLeft,tfRight);
-
+                                
                                 powerValsBL_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEBL_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
                                 powerValsST_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpEST_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
                                 powerValsTG_trialAvg{iFreqRange}(iSub,iElec,iEOTCode,iAttendLoc,iTF) = getMeanEnergyForAnalysis(tmpETG_avg,freqVals,freqRanges{iFreqRange},badFreqPos);
@@ -273,19 +276,19 @@ for iRef = 1:2
                             
                             % computing time-frequency spectrum by
                             % multi-taper method (computed for both static
-%                             % and counterphase stimuli)
-%                             [tmpEST_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.stimOnset(goodPos_stimOnset,:),1)',movingwin,params);
-%                             [tmpETG_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.targetOnset(goodPos_targetOnset,:),1)',movingwin,params);
-%                             
-%                             
-%                             timeVals_tf= tmpT_tf + timeVals(1);
-%                             energyST_tf_trialAvg = conv2Log(tmpEST_tf_trialAvg)';
-%                             energyTG_tf_trialAvg = conv2Log(tmpETG_tf_trialAvg)';
-%                             energyBL_tf_trialAvg = mean(energyST_tf_trialAvg(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
-%                             
-%                             mEnergyST_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf_trialAvg;
-%                             mEnergyTG_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf_trialAvg;
-%                             mEnergyBL_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf_trialAvg,1,length(timeVals_tf));
+                            %                             % and counterphase stimuli)
+                            %                             [tmpEST_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.stimOnset(goodPos_stimOnset,:),1)',movingwin,params);
+                            %                             [tmpETG_tf_trialAvg,~,~] = mtspecgramc(mean(x.analogData.targetOnset(goodPos_targetOnset,:),1)',movingwin,params);
+                            %
+                            %
+                            %                             timeVals_tf= tmpT_tf + timeVals(1);
+                            %                             energyST_tf_trialAvg = conv2Log(tmpEST_tf_trialAvg)';
+                            %                             energyTG_tf_trialAvg = conv2Log(tmpETG_tf_trialAvg)';
+                            %                             energyBL_tf_trialAvg = mean(energyST_tf_trialAvg(:,timeVals_tf>=timingParameters.blRange(1)& timeVals_tf<=timingParameters.blRange(2)),2);
+                            %
+                            %                             mEnergyST_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyST_tf_trialAvg;
+                            %                             mEnergyTG_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = energyTG_tf_trialAvg;
+                            %                             mEnergyBL_tf_trialAvg(iSub,iElec,iEOTCode,iAttendLoc,iTF,:,:) = repmat(energyBL_tf_trialAvg,1,length(timeVals_tf));
                             
                         end
                     end
@@ -304,18 +307,18 @@ for iRef = 1:2
     fftBL_all{iRef} = fftBL;
     fftST_all{iRef} = fftST;
     fftTG_all{iRef} = fftTG;
-
+    
     psdBL_all{iRef} = psdBL; psdBL_trialAvg_all{iRef} = psdBL_trialAvg;
     psdST_all{iRef} = psdST; psdST_trialAvg_all{iRef} = psdST_trialAvg;
     psdTG_all{iRef} = psdTG; psdTG_trialAvg_all{iRef} = psdTG_trialAvg;
     powerValsBL_all{iRef} = powerValsBL; powerValsBL_trialAvg_all{iRef} = powerValsBL_trialAvg;
     powerValsST_all{iRef} = powerValsST; powerValsST_trialAvg_all{iRef} = powerValsST_trialAvg;
     powerValsTG_all{iRef} = powerValsTG; powerValsTG_trialAvg_all{iRef} = powerValsTG_trialAvg;
-
-%     tfDataBL_all{iRef} = mEnergyBL_tf; tfDataBL_trialAvg_all{iRef} = mEnergyBL_tf_trialAvg;
-%     tfDataST_all{iRef} = mEnergyST_tf; tfDataST_trialAvg_all{iRef} = mEnergyST_tf_trialAvg;
-%     tfDataTG_all{iRef} = mEnergyTG_tf; tfDataTG_trialAvg_all{iRef} = mEnergyTG_tf_trialAvg;
-
+    
+    %     tfDataBL_all{iRef} = mEnergyBL_tf; tfDataBL_trialAvg_all{iRef} = mEnergyBL_tf_trialAvg;
+    %     tfDataST_all{iRef} = mEnergyST_tf; tfDataST_trialAvg_all{iRef} = mEnergyST_tf_trialAvg;
+    %     tfDataTG_all{iRef} = mEnergyTG_tf; tfDataTG_trialAvg_all{iRef} = mEnergyTG_tf_trialAvg;
+    
 end
 
 % Structuring data for all data
@@ -385,7 +388,7 @@ load(fullfile(folderExtract,'parameterCombinations.mat')); %#ok<*LOAD>
 end
 
 % Get Bad Trials
-function [badTrials,badElecs] = loadBadTrials(badTrialFile) %#ok<*STOUT>
+function [badTrials,badElecs,badTrialsUnique] = loadBadTrials(badTrialFile) %#ok<*STOUT>
 load(badTrialFile);
 end
 
@@ -419,7 +422,7 @@ elseif tfLeft==0 && tfRight==0 % Static Stimuli
     badFreqs = 51:51:max(freqVals);
 end
 
-badFreqPos = [];  
+badFreqPos = [];
 for i=1:length(badFreqs)
     badFreqPos = cat(2,badFreqPos,intersect(find(freqVals>=badFreqs(i)-deltaF_LineNoise),find(freqVals<=badFreqs(i)+deltaF_LineNoise)));
 end

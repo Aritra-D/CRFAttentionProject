@@ -1,4 +1,4 @@
-function [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = getData_MappingProtocols(protocolType,gridType,timingParameters,tapers,freqRanges)
+function [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = getData_MappingProtocols(protocolType,gridType,timingParameters,tapers,freqRanges,badTrialStr,removeBadEyeTrialsFlag)
 
 [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationMappingProtocols_HumanEEG(gridType,protocolType);
 
@@ -47,12 +47,12 @@ for iRef = 1:2
             electrodeList = getElectrodeList(capType,refType,1);
             
             % Get bad trials
-            badTrialFile = fullfile(folderSegment,'badTrials_v5.mat');
+            badTrialFile = fullfile(folderSegment,['badTrials_' badTrialStr '.mat']);
             if ~exist(badTrialFile,'file')
                 disp('Bad trial file does not exist...');
                 badElecs = []; badTrials=[];
             else
-                [badTrials,badElectrodes] = loadBadTrials(badTrialFile);
+                [badTrials,badElectrodes,badTrialsUnique] = loadBadTrials(badTrialFile);
                 badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]);
                 disp([num2str(length(badTrials)) ' bad trials']);
             end
@@ -114,7 +114,11 @@ for iRef = 1:2
                     goodPos1 = parameterCombinations{a1,e1,s1,sf1,o1,c1,iTF};
                     goodPos2 = parameterCombinations2{a2,e2,s2,sf2,o2,c2,iTF};
                     goodPos = intersect(goodPos1,goodPos2);
-                    goodPos = setdiff(goodPos,badTrials);
+                    if removeBadEyeTrialsFlag
+                        goodPos = setdiff(goodPos,union(badTrials,badTrialsUnique.badEyeTrials));
+                    else
+                        goodPos = setdiff(goodPos,badTrials);
+                    end
                     
                     if isempty(goodPos)
                         disp(['No entries for this combination.. iSub == ' num2str(iSub) ' iProt == ' num2str(iProt) ' iTF ==' num2str(iTF)]);
@@ -303,7 +307,7 @@ if ~exist('sValsUnique','var');    sValsUnique=rValsUnique;            end
 end
 
 % Get Bad Trials
-function [badTrials,badElecs] = loadBadTrials(badTrialFile) %#ok<*STOUT>
+function [badTrials,badElecs,badTrialsUnique] = loadBadTrials(badTrialFile) %#ok<*STOUT>
 load(badTrialFile);
 end
 
@@ -321,12 +325,12 @@ if nargin<2
 end
 
 if tfLeft>0 && tfRight>0 % Flickering Stimuli
-    badFreqs = 51:51:max(freqVals);
+    badFreqs = 52:52:max(freqVals);
     tfHarmonics1 = remove_NthHarmonicOnwards*tfLeft:tfLeft:max(freqVals); % remove nth SSVEP harmonic and beyond
     tfHarmonics2 = remove_NthHarmonicOnwards*tfRight:tfRight:max(freqVals); % remove nth SSVEP harmonic and beyond
     tfHarmonics = unique([tfHarmonics1 tfHarmonics2]);
 elseif tfLeft==0 && tfRight==0 % Static Stimuli
-    badFreqs = 51:51:max(freqVals);
+    badFreqs = 52:52:max(freqVals);
 end
 
 badFreqPos = [];  

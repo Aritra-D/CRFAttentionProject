@@ -46,7 +46,7 @@ if exist(fileName, 'file')
     load(fileName,'erpData','energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr);
     save(fileName,'erpData','fftData','energyData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
@@ -54,7 +54,7 @@ end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
 subjectIdsWithRefAdjacentElecArtifacts = 1:26;
-declaredBadElectrodes = [8 9 10 11 43 44]; %  13 47 52 15 50 54
+declaredBadElectrodes = [8 9 10 11 43 44]; %[8 9 10 11 43 44]; %  13 47 52 15 50 54
 if removeBadElectrodeData
     for iSub = 1:length(subjectIdx)
         for iRef = 1:2
@@ -564,7 +564,7 @@ annotation('textbox',[0.34+ 0.1 0.97 0.3 0.0241],'EdgeColor','none','String','At
 
 
 stringLabels1 = {'alpha' '(8-12 Hz)'};
-stringLabels2 = {'gamma' '(25-70 Hz'};
+stringLabels2 = {'gamma' '(25-70 Hz)'};
 stringLabels3 = {'SSVEP' 'SingleTrial'};
 stringLabels4 = {'SSVEP' 'TrialAvg'};
 
@@ -701,8 +701,8 @@ for iCount = 1: length(attendLocs)*length(ssvepFreqs)
 end
 
 if strcmp(neuralMeasure,'alpha')||strcmp(neuralMeasure,'gamma')
-    attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(attData_allcondTMP([1 3],:,:),1,nanFlag)),2,nanFlag));
-    ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(ignData_allcondTMP([1 3],:,:),1,nanFlag)),2,nanFlag));
+    attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(squeeze(attData_allcondTMP([1 3],:,:)),1,nanFlag)),2,nanFlag));
+    ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(squeeze(ignData_allcondTMP([1 3],:,:)),1,nanFlag)),2,nanFlag));
 elseif strcmp(neuralMeasure,'SSVEP-SingleTrial')||strcmp(neuralMeasure,'SSVEP-TrialAvg')
     attData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(attData_allcondTMP,1,nanFlag)),2,nanFlag));
     ignData{length(attendLocs)*length(ssvepFreqs)+1} = squeeze(mean(log10(mean(ignData_allcondTMP,1,nanFlag)),2,nanFlag));

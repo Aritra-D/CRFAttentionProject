@@ -1,4 +1,4 @@
-function [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = getData_SFORIProtocols(protocolType,gridType,timingParameters,tapers,freqRanges)
+function [fftData,energyData,energyDataTF,badHighPriorityElecs,badElecs] = getData_SFORIProtocols(protocolType,gridType,timingParameters,tapers,freqRanges,badTrialStr,removeBadEyeTrialsFlag)
 
 [subjectNames,expDates,protocolNames,maxGamma_SFIndex,...
     maxGamma_OriIndex,dataFolderSourceString]...
@@ -46,12 +46,12 @@ for iRef = 1:2
         electrodeList = getElectrodeList(capType,refType,1);
         
         % Get bad trials
-        badTrialFile = fullfile(folderSegment,'badTrials_v5.mat');
+        badTrialFile = fullfile(folderSegment,['badTrials_' badTrialStr '.mat']);
         if ~exist(badTrialFile,'file')
             disp('Bad trial file does not exist...');
             badElecs = []; badTrials=[];
         else
-            [badTrials,badElectrodes] = loadBadTrials(badTrialFile);
+            [badTrials,badElectrodes,badTrialsUnique] = loadBadTrials(badTrialFile);
             badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]);
             disp([num2str(length(badTrials)) ' bad trials']);
         end
@@ -108,10 +108,17 @@ for iRef = 1:2
             for iTF = 1:2
                 clear goodPos1 goodPos2
                 goodPos1 = parameterCombinations{a,e,s,length(fValsUnique)+1,length(oValsUnique)+1,c,iTF};
-                goodPos1 = setdiff(goodPos1,badTrials);
-                
                 goodPos2 = parameterCombinations{a,e,s,maxGamma_SFIndex{iSub},maxGamma_OriIndex{iSub},c,iTF};
-                goodPos2 = setdiff(goodPos2,badTrials);
+
+                if removeBadEyeTrialsFlag
+                    goodPos1 = setdiff(goodPos1,union(badTrials,badTrialsUnique.badEyeTrials));
+                    goodPos2 = setdiff(goodPos2,union(badTrials,badTrialsUnique.badEyeTrials));
+                else
+                    goodPos1 = setdiff(goodPos1,badTrials);
+                    goodPos2 = setdiff(goodPos2,badTrials);
+                    
+                end
+                
                 
                 if isempty(goodPos1)
                     disp(['No entries for this combination.. iSub == ' num2str(iSub) ' iTF ==' num2str(iTF)]);
@@ -371,7 +378,7 @@ end
 
 end
 
-function [badTrials,badElecs] = loadBadTrials(badTrialFile) %#ok<*STOUT>
+function [badTrials,badElecs,badTrialsUnique] = loadBadTrials(badTrialFile) %#ok<*STOUT>
 load(badTrialFile);
 end
 
