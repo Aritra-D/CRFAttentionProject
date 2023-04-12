@@ -1,4 +1,15 @@
-function [badTrials,allBadTrials,badTrialsUnique,badElecs,totalTrials,slopeValsVsFreq]=findBadTrialsWithEEG_SRCLong_v10(subjectName,expDate,protocolName,folderSourceString,gridType,badEEGElectrodes,nonEEGElectrodes,impedanceTag,capType,saveDataFlag,badTrialNameStr,displayResultsFlag)
+% This is the main program used to find bad trials in EEG data.
+
+% Note: This program was built on top of findBadTrialsEEG_GAV_v2 to _v5.
+% This program was used for finding bad trials for 350 subjects who were
+% part of ADGammaProject. This program will be modified in future commits
+% to be compatible with the data format used here.
+
+% badEEGElectrodes: set of EEG electrodes deemed bad from the beginning and not used for any further analysis.
+% nonEEGElectrodes are other analog electrodes that are not considered for bad trial analysis
+% capType: Name of the montage. Set to empty for LFP data
+
+function [badTrials,allBadTrials,badTrialsUnique,badElecs,totalTrials,slopeValsVsFreq] = findBadTrialsWithEEG_SRCLong_v7(subjectName,expDate,protocolName,folderSourceString,gridType,badEEGElectrodes,nonEEGElectrodes,impedanceTag,capType,saveDataFlag,badTrialNameStr,displayResultsFlag)
 
 if ~exist('gridType','var');        gridType = 'EEG';                   end
 if ~exist('badEEGElectrodes','var');  badEEGElectrodes = [];            end
@@ -6,20 +17,16 @@ if ~exist('nonEEGElectrodes','var');  nonEEGElectrodes = [65 66];       end
 if ~exist('impedanceTag','var');    impedanceTag = 'ImpedanceStart';    end
 if ~exist('capType','var');         capType = 'actiCap64';              end
 if ~exist('saveDataFlag','var');    saveDataFlag = 1;                   end
-if ~exist('badTrialNameStr','var'); badTrialNameStr = '_v10';     end
+if ~exist('badTrialNameStr','var'); badTrialNameStr = '_v7';            end
 if ~exist('displayResultsFlag','var'); displayResultsFlag=0;            end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Initializations %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 highPassCutOff = 1.6; % Hz
 checkPeriod = [-1.000 1.250]; % s
 ImpedanceCutOff = 25; % KOhm
-% time_threshold  = 6;
+time_threshold  = 6;
 psd_threshold = 6;
 badTrialThreshold = 30; % Percentage
-% Threshold for RMS can be set according to 
-% different datasets for future recordings
-MaxRMSThreshold = 35;
-MinRMSThreshold =  1.5;
 
 tapersPSD = 1; % No. of tapers used for computation of slopes
 slopeRange = {[56 86]}; % Hz, slope range used to compute slopes
@@ -41,7 +48,7 @@ hW1 = waitbar(0,'collecting data...');
 for i=1:numChannelsStored
     iElec = eegChannelsStored(i);
     waitbar((i-1)/numChannelsStored,hW1,['collecting data from electrode: ' num2str(iElec) ' of ' num2str(numChannelsStored)]);
-    
+
     clear x; x = load(fullfile(folderSegment,'LFP',['elec' num2str(iElec) '.mat'])); % Load EEG Data
     eegData(iElec,1,:,:) = x.analogData.stimOnset; %#ok<AGROW>
     eegData(iElec,2,:,:) = x.analogData.targetOnset; %#ok<AGROW>
@@ -110,22 +117,23 @@ if exist('highPassCutOff','var') || ~isempty(highPassCutOff) % Defining filter
 end
 
 allBadTrials = cell(1,numElectrodes);
+badTrialsUnique.rmsThres = cell(1,numElectrodes);
 badTrialsUnique.timeThres = cell(1,numElectrodes);
 badTrialsUnique.freqThres = cell(1,numElectrodes);
-badTrialsUnique.rmsThres = cell(1,numElectrodes);
-
 
 allBadTrialsSegmentWise = cell(numSegments,numElectrodes);
+badTrialsUniqueSegmentWise.rmsThres = cell(numSegments,numElectrodes);
+
 badTrialsUniqueSegmentWise.timeThres = cell(numSegments,numElectrodes);
 badTrialsUniqueSegmentWise.freqThres = cell(numSegments,numElectrodes);
-badTrialsUniqueSegmentWise.rmsThres = cell(numSegments,numElectrodes);
+
 
 hW1 = waitbar(0,'Processing electrodes...');
 
 for iElec=1:numElectrodes
     waitbar((iElec-1)/numElectrodes,hW1,['Processing electrode: ' num2str(iElec) ' of ' num2str(numElectrodes)]);
     if ~GoodElec_Z(iElec); allBadTrials{iElec} = NaN; continue; end % Analyzing only those electrodes with impedance < 25k
-    for iSegmentType = 1:2
+    for iSegmentType = 1: size(eegData,2)
         if iSegmentType==1
             checkPeriod = [-1.000 1.250]; % for stim onset, check period is from onset of pre-cue time to end of five stim presentations of 250ms each
         elseif iSegmentType==2
@@ -133,95 +141,101 @@ for iElec=1:numElectrodes
         end
         analogData = squeeze(eegData(iElec,iSegmentType,:,:));
         analogData(badEyeTrials,:) = [];
-        
+
         % determine indices corresponding to the check period
         checkPeriodIndices = timeVals>=checkPeriod(1) & timeVals<checkPeriod(2);
-        
+
         analogData = analogData(:,checkPeriodIndices);
-        
+
         clear analogDataSegment; analogDataSegment = analogData;
-        
+
         if exist('highPassCutOff','var') || ~isempty(highPassCutOff)    % high pass filter
             clear analogData; analogData = filtfilt(d1,analogDataSegment')';
         end
-        
+
         % subtract dc
         analogData = analogData - repmat(mean(analogData,2),1,size(analogData,2));
-        
+
         % calculate RMS Values for each trial
-        xElecRMS = zeros(size(analogData,1),1);
         if size(analogData,1) == 0
-            xElecRMS= [];
+            xElecRms= [];
         else
             for i = 1:size(analogData,1)
-                xElecRMS(i) = rms(analogData(i,:));
+                xElecRms(i,:) = rms(analogData(i,:));
             end
         end
-        
+
+        %Threshold for RMS
+        MaxThreshold = 35;
+        MinThreshold =  1;
+
         % finding indices which have threshold values higher or lower than this
-        clear badRMSTrials
-        badRMSTrials = find(xElecRMS>MaxRMSThreshold | xElecRMS<MinRMSThreshold);
-        
-        % calculating number of trials after removing only the badEyeTrials
-        % and not badRMStrials
-        numTrials = size(analogData,1);  % excluding bad eye trials; same for all electrodes
+        clear badRmsTrials
+        badRmsTrials = find(xElecRms>MaxThreshold | xElecRms<MinThreshold);
+        if ~exist('badRmsTrials','var')
+            badRmsTrials = [];
+        end
 
         % removing bad RMS trials
         if ~isempty(analogData)
-            analogData(badRMSTrials,:) = [];
-            analogDataSegment(badRMSTrials,:) = [];
+            analogData(badRmsTrials,:) = [];
+            analogDataSegment(badRmsTrials,:) = [];
         end
-        
+
+
+
+
+
         % Check time-domain waveforms
-        %         meanTrialData = nanmean(analogData,1);                     %#ok<*nanmean> % mean trial trace
-        %         stdTrialData = nanstd(analogData,[],1);                    %#ok<*NANSTD> % std across trials
-        %
-        %         tDplus = (meanTrialData + (time_threshold)*stdTrialData);    % upper boundary/criterion
-        %         tDminus = (meanTrialData - (time_threshold)*stdTrialData);   % lower boundary/criterion
-        %
-        %         tBoolTrials = sum((analogData > ones(numTrials,1)*tDplus) | (analogData < ones(numTrials,1)*tDminus),2);
-        %
-        %         clear badTrialsTimeThres
-        %         badTrialsTimeThres = find(tBoolTrials>0);
+        numTrials = size(analogData,1);                            % excluding bad eye trials
+        meanTrialData = nanmean(analogData,1);                     %#ok<*NANMEAN> % mean trial trace
+        stdTrialData = nanstd(analogData,[],1);                    %#ok<*NANSTD> % std across trials
+
+        tDplus = (meanTrialData + (time_threshold)*stdTrialData);    % upper boundary/criterion
+        tDminus = (meanTrialData - (time_threshold)*stdTrialData);   % lower boundary/criterion
+
+        tBoolTrials = sum((analogData > ones(numTrials,1)*tDplus) | (analogData < ones(numTrials,1)*tDminus),2);
+
+        clear badTrialsTimeThres
+        badTrialsTimeThres = find(tBoolTrials>0);
 
         % Check PSD
         clear powerVsFreq;
-        [powerVsFreq,~] = mtspectrumc(round(analogDataSegment,10)',params);
+        [powerVsFreq,~] = mtspectrumc(analogDataSegment',params);
         powerVsFreq = powerVsFreq';
-        
+
         clear meanTrialData stdTrialData tDplus
-        meanTrialData = mean(powerVsFreq,1,'omitnan');                     % mean trial trace
-        stdTrialData = std(powerVsFreq,[],1,'omitnan');                    % std across trials
-        %                 meanTrialData = nanmean(powerVsFreq(setdiff(1:size(powerVsFreq,1),badTrialsTimeThres),:),1);                     % mean trial trace
-        %                 stdTrialData = nanstd(powerVsFreq(setdiff(1:size(powerVsFreq,1),badTrialsTimeThres),:),[],1);                    % std across trials
-        
-        numTrials_badRMSExcluded = size(analogData,1); % excluding bad RMS trials; different for each electrode
+        meanTrialData = nanmean(powerVsFreq(setdiff(1:size(powerVsFreq,1),badTrialsTimeThres),:),1);                     % mean trial trace
+        stdTrialData = nanstd(powerVsFreq(setdiff(1:size(powerVsFreq,1),badTrialsTimeThres),:),[],1);                    % std across trials
+
         tDplus = (meanTrialData + (psd_threshold)*stdTrialData);    % upper boundary/criterion
-        clear tBoolTrials; tBoolTrials = sum((powerVsFreq > ones(numTrials_badRMSExcluded,1)*tDplus),2);
+        clear tBoolTrials; tBoolTrials = sum((powerVsFreq > ones(numTrials,1)*tDplus),2);
         clear badTrialsFreqThres; badTrialsFreqThres = find(tBoolTrials>0);
-        tmpBadTrialsAll = unique([badTrialsFreqThres;badRMSTrials]);
-        
+
+        tmpBadTrialsAll = unique([badTrialsTimeThres;badTrialsFreqThres;badRmsTrials]);
+
         % Remap bad trial indices to original indices
         allBadTrialsTMP = originalTrialInds(tmpBadTrialsAll);
         allBadTrials{iElec} = unique(cat(2,allBadTrials{iElec},allBadTrialsTMP)); % concatenating badTrials from both 'stimOnset' and 'targetOnset' time Segments
         allBadTrialsSegmentWise{iSegmentType,iElec} = allBadTrialsTMP; % storing badTrials from  'stimOnset' and 'targetOnset' time Segments separately
-        
+
         % Calculate number of unique bad trials for each thresholding criterion
-        rmsThresTMP = originalTrialInds(badRMSTrials);
-        %         timeThresTMP = originalTrialInds(badTrialsTimeThres);
-        freqThresTMP =  originalTrialInds(setdiff(badTrialsFreqThres,badRMSTrials));
+        rmsThresTMP = originalTrialInds(badRmsTrials);
+        timeThresTMP = originalTrialInds(setdiff(badTrialsTimeThres,rmsThresTMP'));
+        freqThresTMP =  originalTrialInds(setdiff(badTrialsFreqThres,[badTrialsTimeThres; rmsThresTMP']));
+
         badTrialsUnique.rmsThres{iElec} = unique(cat(2,badTrialsUnique.rmsThres{iElec},rmsThresTMP));
-        %          badTrialsUnique.timeThres{iElec} = unique(cat(2,badTrialsUnique.timeThres{iElec},timeThresTMP)); % concatenating both 'stimOnset' and 'targetOnset' time Segments
+        badTrialsUnique.timeThres{iElec} = unique(cat(2,badTrialsUnique.timeThres{iElec},timeThresTMP)); % concatenating both 'stimOnset' and 'targetOnset' time Segments
         badTrialsUnique.freqThres{iElec} = unique(cat(2,badTrialsUnique.freqThres{iElec},freqThresTMP));
-        %
+
         badTrialsUniqueSegmentWise.rmsThres{iSegmentType,iElec} = rmsThresTMP;
-        %         badTrialsUniqueSegmentWise.timeThres{iSegmentType,iElec} = timeThresTMP; % storing 'stimOnset' and 'targetOnset' time Segments separately
+        badTrialsUniqueSegmentWise.timeThres{iSegmentType,iElec} = timeThresTMP; % storing 'stimOnset' and 'targetOnset' time Segments separately
         badTrialsUniqueSegmentWise.freqThres{iSegmentType,iElec} = freqThresTMP;
     end
 end
 close(hW1);
 
-% % 4. Remove electrodes containing more than x% bad trials
+% 4. Remove electrodes containing more than x% bad trials
 badTrialUL = (badTrialThreshold/100)*numTrials;
 badTrialLength=cellfun(@length,allBadTrials);
 badTrialLength(nBadElecs{1})=NaN; % Removing the bad impedance electrodes
@@ -249,15 +263,15 @@ slopeValsVsFreq = cell(1,numElectrodes);
 eegData = eegData(:,1,setdiff(originalTrialInds,badTrials),checkPeriodIndicesPSD);
 for iElec=1:numElectrodes
     if isnan(allBadTrials{1,iElec}); slopeValsVsFreq{iElec} = {NaN,NaN}; goodSlopeFlag(iElec) = false; continue; end %#ok<AGROW>
-    
+
     % Computing slopes
     analogDataPSD = squeeze(eegData(iElec,1,:,:));
     %         analogDataPSD = analogDataPSD - repmat(mean(analogDataPSD,2),1,size(analogDataPSD,2));
-    
+
     clear powerVsFreq freqVals
     [powerVsFreq,freqVals] = mtspectrumc(analogDataPSD',params);
     slopeValsVsFreq{iElec} = getSlopesPSDBaseline_v2((log10(mean(powerVsFreq,2)))',freqVals,slopeRange,[],freqsToAvoid);
-    goodSlopeFlag(iElec) = slopeValsVsFreq{iElec}{2}>0; %#ok<AGROW>
+    goodSlopeFlag(iElec) = slopeValsVsFreq{iElec}{2}>0.1; %#ok<AGROW>
 end
 
 nanElecs = find(cell2mat(cellfun(@(x)any(isnan(x)),allBadTrials,'UniformOutput',false))); % MD: 09-09-2019
@@ -319,18 +333,18 @@ if ~isempty(FsEye)
     eyeRangeMS = load(eyeDataFile1);
     eyeRangeMS = eyeRangeMS.eyeRangeMS;
     eyeData = load(eyeDataFile2);
-    
+
     eyeDataDegX = eyeData.eyeDataDegX;
     eyeDataDegY = eyeData.eyeDataDegY;
-    
+
     if iscell(eyeDataDegX) && iscell(eyeDataDegY)
         eyeDataDegX = concatenateCellArrayToMatrix(eyeDataDegX)';
         eyeDataDegY = concatenateCellArrayToMatrix(eyeDataDegY)';
     end
-    
+
     eyeData.eyeDataDegX = eyeDataDegX;
     eyeData.eyeDataDegY = eyeDataDegY;
-    
+
     if isfield(eyeData,'eyeDataArbUnitsP')
         eyeDataArbUnitsP = eyeData.eyeDataArbUnitsP;
         eyeDataArbUnitsP = concatenateCellArrayToMatrix(eyeDataArbUnitsP)';

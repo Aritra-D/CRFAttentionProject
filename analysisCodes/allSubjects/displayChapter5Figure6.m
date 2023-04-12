@@ -11,6 +11,7 @@ if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='EEG';      end
 
 tapers = [1 1];
+removeBadEyeTrialsFlag = 1;
 
 timingParameters.blRange = [-1.000 0];
 timingParameters.stRange = [0.250 1.250];
@@ -40,13 +41,13 @@ numFreqs = length(freqRanges);
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',[protocolType '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '.mat']);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr '_removeBadEyeTrialsFlag_' num2str(removeBadEyeTrialsFlag) '.mat']);
 
 if exist(fileName, 'file')
     load(fileName,'erpData','energyData','badElecs','badHighPriorityElecs') %#ok<*LOAD>
 else
     [erpData,fftData,energyData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = ...
-        getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr);
+        getData_SRCLongProtocols_v1(protocolType,gridType,timingParameters,tapers,badTrialStr,removeBadEyeTrialsFlag);
     save(fileName,'erpData','fftData','energyData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
@@ -54,7 +55,7 @@ end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
 subjectIdsWithRefAdjacentElecArtifacts = 1:26;
-declaredBadElectrodes = [8 9 10 11 43 44]; %[8 9 10 11 43 44]; %  13 47 52 15 50 54
+declaredBadElectrodes = [];%[8 9 10 11 43 44]; %[8 9 10 11 43 44]; %  13 47 52 15 50 54
 if removeBadElectrodeData
     for iSub = 1:length(subjectIdx)
         for iRef = 1:2
@@ -116,8 +117,8 @@ nanFlag = 'omitnan';
 hFig1 = figure(2); colormap(colorMap)
 set(hFig1,'units','normalized','outerPosition',[0 0 1 1]);
 hPlot1 = getPlotHandles(4,3,[0.07 0.07, 0.5 0.85],0.02,0.04,0);
-hPlot2 = getPlotHandles(2,1,[0.65 0.57, 0.18 0.38],0.035,0.03,0);
-hPlot3 = getPlotHandles(1,1,[0.65 0.09, 0.18 0.4],0.035,0.01,0);
+hPlot2 = getPlotHandles(2,1,[0.65 0.61, 0.18 0.34],0.035,0.02,0);
+hPlot3 = getPlotHandles(1,1,[0.65 0.11, 0.18 0.36],0.035,0.01,0);
 
 
 if BaselineCondition
@@ -204,7 +205,7 @@ end
 % hPlot2 = getPlotHandles(2,3,[0.07 0.01, 0.45 0.42],0.02,0.02,0);
 % hPlot3 = getPlotHandles(1,3,[0.58 0.56, 0.42 0.3],0.04,0.02,0);
 % hPlot4 = getPlotHandles(1,3,[0.58 0.07, 0.42 0.3],0.04,0.02,0);
-fontSize = 12;
+fontSize = 14;
 
 % SSVEP Topoplots (Figure 2)
 showNeuralMeasure{1} = 'alpha';
@@ -222,10 +223,14 @@ refType = 1;
 
 
 chanLocs = chanlocs_Unipolar;
-showElecIDs = showOccipitalElecsUnipolarRight;
 
 topoPlotFlag = 1;
 for iPlot=1:4
+    if iPlot<=2
+        showElecIDs = [showOccipitalElecsUnipolarLeft showOccipitalElecsUnipolarRight];
+    else
+        showElecIDs = showOccipitalElecsUnipolarRight;
+    end
     if strcmp(showNeuralMeasure{iPlot},'alpha')
         
         if strcmp(BaselineCondition,'none')
@@ -372,16 +377,33 @@ psd_Ign = squeeze(mean(log10(mean(ignData_psd(end,:,:,:),3,nanFlag)),2,nanFlag))
 psdBL_Att = squeeze(mean(log10(mean(attDataBL_psd(end,:,:,:),3,nanFlag)),2,nanFlag));
 psdBL_Ign = squeeze(mean(log10(mean(ignDataBL_psd(end,:,:,:),3,nanFlag)),2,nanFlag));
 diffPSD = 10*(psd_Att-psd_Ign);
-subplot(hPlot2(1))
-yyaxis left
-plot(hPlot2(1),energyData.freqVals,psd_Att,'-r','LineWidth',lineWidth); hold(hPlot2(1),'on');
-plot(hPlot2(1),energyData.freqVals,psd_Ign,'-b','LineWidth',lineWidth);
-%         plot(hPlot(1),energyData.freqVals,psdBL_Att,'k');
-plot(hPlot2(1),energyData.freqVals,psdBL_Ign,'-g','LineWidth',lineWidth);
-yyaxis right
+
+% Delta PSD (Att. Vs Ign.) in Left y-axis
+mPSD_Att_elec = squeeze(log10(mean(attData_psd(end,:,:,:),3,nanFlag)));
+mPSD_Ign_elec = squeeze(log10(mean(ignData_psd(end,:,:,:),3,nanFlag)));
+diffPSD_subjects = 10*(mPSD_Att_elec-mPSD_Ign_elec);
+semDiffPSD = std(diffPSD_subjects,[],1)./sqrt(size(diffPSD_subjects,1));
+
+xsLong  = [energyData.freqVals fliplr(energyData.freqVals)];
+ysLong = [diffPSD' + semDiffPSD fliplr(diffPSD'-semDiffPSD)];
+
 plot(hPlot2(1),energyData.freqVals,diffPSD,'color',[0.4940 0.1840 0.5560],'LineWidth',lineWidth);
+patch(xsLong,ysLong,[0.4940 0.1840 0.5560],'FaceAlpha',0.4,'EdgeColor','none','parent',hPlot2(1))
 xlim(hPlot2(1),[0 80])
-ylim(hPlot2(1),[-4 4])
+ylim(hPlot2(1),[-2 1])
+
+% PSDs (Att, Ign, Baseline)and delta PSD (Att. Vs Ign.) in Left and Right
+% y-axes
+% subplot(hPlot2(1))
+% yyaxis left
+% plot(hPlot2(1),energyData.freqVals,psd_Att,'-r','LineWidth',lineWidth); hold(hPlot2(1),'on');
+% plot(hPlot2(1),energyData.freqVals,psd_Ign,'-b','LineWidth',lineWidth);
+% %         plot(hPlot(1),energyData.freqVals,psdBL_Att,'k');
+% plot(hPlot2(1),energyData.freqVals,psdBL_Ign,'-g','LineWidth',lineWidth);
+% yyaxis right
+% plot(hPlot2(1),energyData.freqVals,diffPSD,'color',[0.4940 0.1840 0.5560],'LineWidth',lineWidth);
+% xlim(hPlot2(1),[0 80])
+% ylim(hPlot2(1),[-4 4])
 
 
 % pos = get(hPlot(1), 'Position');
@@ -396,16 +418,32 @@ psdBL_Att = squeeze(mean(log10(mean(attDataBL_psd(end,:,:,:),3,nanFlag)),2,nanFl
 psdBL_Ign = squeeze(mean(log10(mean(ignDataBL_psd(end,:,:,:),3,nanFlag)),2,nanFlag));
 diffPSD = 10*(psd_Att-psd_Ign);
 
-subplot(hPlot2(2))
-yyaxis left
-plot(hPlot2(2) ,energyData.freqVals,psd_Att,'-r','LineWidth',lineWidth); hold(hPlot2(2) ,'on');
-plot(hPlot2(2) ,energyData.freqVals,psd_Ign,'-b','LineWidth',lineWidth);
-%         plot(hPlot(1),energyData.freqVals,psdBL_Att,'k');
-plot(hPlot2(2) ,energyData.freqVals,psdBL_Ign,'-g','LineWidth',lineWidth);
-yyaxis right
-plot(hPlot2(2) ,energyData.freqVals,diffPSD,'color',[0.4940 0.1840 0.5560],'LineWidth',lineWidth);
+% Delta PSD (Att. Vs Ign.) in Left y-axis
+mPSD_Att_elec = squeeze(log10(mean(attData_psd(end,:,:,:),3,nanFlag)));
+mPSD_Ign_elec = squeeze(log10(mean(ignData_psd(end,:,:,:),3,nanFlag)));
+diffPSD_subjects = 10*(mPSD_Att_elec-mPSD_Ign_elec);
+semDiffPSD = std(diffPSD_subjects,[],1)./sqrt(size(diffPSD_subjects,1));
+
+xsLong  = [energyData.freqVals fliplr(energyData.freqVals)];
+ysLong = [diffPSD' + semDiffPSD fliplr(diffPSD'-semDiffPSD)];
+
+plot(hPlot2(2),energyData.freqVals,diffPSD,'color',[0.4940 0.1840 0.5560],'LineWidth',lineWidth);
+patch(xsLong,ysLong,[0.4940 0.1840 0.5560],'FaceAlpha',0.4,'EdgeColor','none','parent',hPlot2(2))
 xlim(hPlot2(2),[0 80])
-ylim([-4 4])
+ylim(hPlot2(2),[-2 1])
+
+% PSDs (Att, Ign, Baseline)and delta PSD (Att. Vs Ign.) in Left and Right
+% Axes
+% subplot(hPlot2(2))
+% yyaxis left
+% plot(hPlot2(2) ,energyData.freqVals,psd_Att,'-r','LineWidth',lineWidth); hold(hPlot2(2) ,'on');
+% plot(hPlot2(2) ,energyData.freqVals,psd_Ign,'-b','LineWidth',lineWidth);
+% %         plot(hPlot(1),energyData.freqVals,psdBL_Att,'k');
+% plot(hPlot2(2) ,energyData.freqVals,psdBL_Ign,'-g','LineWidth',lineWidth);
+% yyaxis right
+% plot(hPlot2(2) ,energyData.freqVals,diffPSD,'color',[0.4940 0.1840 0.5560],'LineWidth',lineWidth);
+% xlim(hPlot2(2),[0 80])
+% ylim([-4 4])
 
 
 
@@ -477,7 +515,6 @@ for iBar = 1:length(dataIDs)
 end
 errorbar(hPlot(1),1:length(mBars),mBars,eBars,'.','color','k');
 
-disp('We are here!')
 NeuralMeasures = {'alpha','gamma', 'SSVEP-SingleTrial','SSVEP-TrialAvg'};
 for i=1:size(statData,1)
 [~,pVals_ttest]=ttest(statData(i,:));
@@ -502,25 +539,36 @@ tickPlotLength = get(hPlot2(1,1),'TickLength');
 fontSize = 14;
 
 subplot(hPlot2(1))
-yLims = [-2 3];
-yyaxis left; ylim(yLims); xlim([0 80]);%ylabel(hPlot2(1),{'log_1_0 [power (\muV^2)]' });
-set(gca,'XColor','k', 'YColor','k','XTick',0:20:80,'YTick',[-2 0 3],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
-yLimsR = [-2 2];
-yyaxis right; ylim(yLimsR); xlim([0 80]);%ylabel(hPlot2(1),{ '\Delta Power (dB)'});
-set(gca,'XColor','k', 'YColor',[0.4940 0.1840 0.5560], 'XTick',0:20:80, 'XTickLabel',[],'YTick',[-2 0 2],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
+yLims = [-1.2 1];
+ylim(yLims); xlim([0 80]); %ylabel(hPlot2(1),{ '\Delta Power (dB)'});
+set(gca,'XTick',0:20:80, 'XTickLabel',[],'YTick',[-1 0 1],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
 
 subplot(hPlot2(2))
-yLims = [-4 3];
-yyaxis left; ylim(yLims); xlim([0 80]);ylabel(hPlot2(2),{'log_1_0 [power (\muV^2)]' });
-set(gca,'XColor','k', 'YColor','k','XTick',0:20:80,'YTick',[-4 0 3],'fontSize',fontSize,'box','on','tickLength',3*tickPlotLength,'TickDir','out')
-yLimsR = [-2 2];
-yyaxis right; ylim(yLimsR); xlim([0 80]);ylabel(hPlot2(2),{ '\Delta Power (dB)'});
-set(gca,'XColor','k', 'YColor',[0.4940 0.1840 0.5560], 'XTick',0:20:80,'YTick',[-2 0 2],'fontSize',fontSize,'box','on','tickLength',3*tickPlotLength,'TickDir','out')
+yLims = [-3 2.5];
+ylim(yLims); xlim([0 80]); ylabel(hPlot2(2),{ '\Delta Power (dB)'});
+set(gca,'XTick',0:20:80, 'XTickLabel',0:20:80,'YTick',[-3 0 2],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
+
+
+% subplot(hPlot2(1))
+% yLims = [-2 3];
+% yyaxis left; ylim(yLims); xlim([0 80]);%ylabel(hPlot2(1),{'log_1_0 [power (\muV^2)]' });
+% set(gca,'XColor','k', 'YColor','k','XTick',0:20:80,'YTick',[-2 0 3],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
+% yLimsR = [-2 2];
+% yyaxis right; ylim(yLimsR); xlim([0 80]);%ylabel(hPlot2(1),{ '\Delta Power (dB)'});
+% set(gca,'XColor','k', 'YColor',[0.4940 0.1840 0.5560], 'XTick',0:20:80, 'XTickLabel',[],'YTick',[-2 0 2],'fontSize',fontSize,'box','off','tickLength',3*tickPlotLength,'TickDir','out')
+% 
+% subplot(hPlot2(2))
+% yLims = [-4 3];
+% yyaxis left; ylim(yLims); xlim([0 80]);ylabel(hPlot2(2),{'log_1_0 [power (\muV^2)]' });
+% set(gca,'XColor','k', 'YColor','k','XTick',0:20:80,'YTick',[-4 0 3],'fontSize',fontSize,'box','on','tickLength',3*tickPlotLength,'TickDir','out')
+% yLimsR = [-2 2];
+% yyaxis right; ylim(yLimsR); xlim([0 80]);ylabel(hPlot2(2),{ '\Delta Power (dB)'});
+% set(gca,'XColor','k', 'YColor',[0.4940 0.1840 0.5560], 'XTick',0:20:80,'YTick',[-2 0 2],'fontSize',fontSize,'box','on','tickLength',3*tickPlotLength,'TickDir','out')
 
 set(hPlot2,'fontSize',fontSize,'box','off','tickLength',2*tickPlotLength,'TickDir','out')
 ylim(hPlot3, [-2 5.5])
-Datalabels = {'alpha','gamma','SSVEP-ST','SSVEP-TA'};
-set(hPlot3,'YTick',[-2 0 2 4],'xTick',1:4,'xTickLabel',Datalabels,'XTickLabelRotation',30,'fontSize',fontSize)
+Datalabels = {'alpha','gamma','SSVEP-TbT','SSVEP-TA'};
+set(hPlot3,'YTick',[-2 0 2 4],'xTick',1:4,'xTickLabel',Datalabels,'XTickLabelRotation',30,'tickLength',2*tickPlotLength,'TickDir','out','fontSize',fontSize)
 
 xlabel(hPlot2(2),'Frequency (Hz)')
 ylabel(hPlot3,'Change in Power (dB)');
@@ -530,42 +578,46 @@ ylabel(hPlot3,'Change in Power (dB)');
 
 lineWidth_lines = 1.2;
 
-xline(hPlot2(1),8,'color',colors{1},'LineWidth',lineWidth_lines)
-xline(hPlot2(1),12,'color',colors{1},'LineWidth',lineWidth_lines)
-xline(hPlot2(1),25,'color',colors{2},'LineWidth',lineWidth_lines)
-xline(hPlot2(1),70,'color',colors{2},'LineWidth',lineWidth_lines)
+% xline(hPlot2(1),8,'color',colors{1},'LineWidth',lineWidth_lines)
+% xline(hPlot2(1),12,'color',colors{1},'LineWidth',lineWidth_lines)
+% xline(hPlot2(1),25,'color',colors{2},'LineWidth',lineWidth_lines)
+% xline(hPlot2(1),70,'color',colors{2},'LineWidth',lineWidth_lines)
+patch([8 12 12 8],[-1.2 -1.2 -1.1 -1.1],'k','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(1))
+patch([25 70 70 25],[-1.2 -1.2 -1.1 -1.1],'r','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(1))
 xline(hPlot2(1),24,'color',colors{3},'LineWidth',lineWidth_lines)
 xline(hPlot2(1),32,'color',colors{3},'LineWidth',lineWidth_lines)
 yline(hPlot2(1),0,'color',colors{1},'LineWidth',lineWidth_lines)
 
 
-xline(hPlot2(2),8,'color',colors{1},'LineWidth',lineWidth_lines)
-xline(hPlot2(2),12,'color',colors{1},'LineWidth',lineWidth_lines)
-xline(hPlot2(2),25,'color',colors{2},'LineWidth',lineWidth_lines)
-xline(hPlot2(2),70,'color',colors{2},'LineWidth',lineWidth_lines)
+% xline(hPlot2(2),8,'color',colors{1},'LineWidth',lineWidth_lines)
+% xline(hPlot2(2),12,'color',colors{1},'LineWidth',lineWidth_lines)
+% xline(hPlot2(2),25,'color',colors{2},'LineWidth',lineWidth_lines)
+% xline(hPlot2(2),70,'color',colors{2},'LineWidth',lineWidth_lines)
+patch([8 12 12 8],[-3 -3 -2.75 -2.75],'k','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(2))
+patch([25 70 70 25],[-3 -3 -2.75 -2.75],'r','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(2))
 xline(hPlot2(2),24,'color',colors{3},'LineWidth',lineWidth_lines)
 xline(hPlot2(2),32,'color',colors{3},'LineWidth',lineWidth_lines)
 yline(hPlot2(2),0,'color',colors{1},'LineWidth',lineWidth_lines)
 
 
-annotation('textbox',[0.69 0.97 0.2 0.0241],'EdgeColor','none','String','Occipital Electrodes','fontSize',14,'fontWeight','bold');
+% annotation('textbox',[0.69 0.97 0.2 0.0241],'EdgeColor','none','String','Occipital Electrodes','fontSize',14,'fontWeight','bold');
 
 
 
 textStartPosGapFromMidline = 0.02;
 textWidth = 0.15; textHeight = 0.025;
 textGap = 0.26;
-topoPlotLabels = {'Attended','Ignored','Attended - Ignored'};
+topoPlotLabels = {'Attend Left','Ignore Left','Attend Left - Ignore Left'};
 
-annotation('textbox',[0.10 0.97 0.1 0.0241],'EdgeColor','none','String','Attended','fontSize',14,'fontWeight','bold');
-annotation('textbox',[0.16+ 0.12 0.97 0.1 0.0241],'EdgeColor','none','String','Ignored','fontSize',14,'fontWeight','bold');
-annotation('textbox',[0.34+ 0.1 0.97 0.3 0.0241],'EdgeColor','none','String','Attended - Ignored','fontSize',14,'fontWeight','bold');
+annotation('textbox',[0.09 0.97 0.1 0.0241],'EdgeColor','none','String','Attend Left','fontSize',14,'fontWeight','bold');
+annotation('textbox',[0.145+ 0.12 0.97 0.1 0.0241],'EdgeColor','none','String','Ignore Left','fontSize',14,'fontWeight','bold');
+annotation('textbox',[0.31+ 0.1 0.97 0.3 0.0241],'EdgeColor','none','String','Attend Left - Ignore Left','fontSize',14,'fontWeight','bold');
 %
 
 
 stringLabels1 = {'alpha' '(8-12 Hz)'};
 stringLabels2 = {'gamma' '(25-70 Hz)'};
-stringLabels3 = {'SSVEP' 'SingleTrial'};
+stringLabels3 = {'SSVEP' 'Trial-by-trial'};
 stringLabels4 = {'SSVEP' 'TrialAvg'};
 
 annotation('textbox',[0.001 0.84 0.08 0.0241],'EdgeColor','none','HorizontalAlignment','center','String',stringLabels1,'fontSize',14);
@@ -606,7 +658,7 @@ end
 
 annotation('textbox',[0.001 0.88 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','A','fontWeight','bold','fontSize',28);
 annotation('textbox',[0.55 0.88 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','B','fontWeight','bold','fontSize',28);
-annotation('textbox',[0.55 0.44 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','C','fontWeight','bold','fontSize',28);
+annotation('textbox',[0.55 0.42 0.1 0.09],'EdgeColor','none','HorizontalAlignment','center','String','C','fontWeight','bold','fontSize',28);
 
 
 % save Figures
@@ -629,15 +681,15 @@ end
 
 
 
-saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SRC-Attention\Topoplots\AttendedVsIgnored\');
+saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\JNeuroFigures\');
 figName1 = fullfile(saveFolder,[protocolType '_' subString  timeEpoch '_FlickerStimuli_', eotString '_tapers_' , ...
     num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
-    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz' 'badTrial_' badTrialStr]);
+    '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr]);
 
 
-saveas(hFig1,[figName1 'v3.fig'])
-print(hFig1,[figName1 'v3.tif'],'-dtiff','-r600')
+saveas(hFig1,[figName1 '.fig'])
+print(hFig1,[figName1 '.tif'],'-dtiff','-r600')
 
 
 end

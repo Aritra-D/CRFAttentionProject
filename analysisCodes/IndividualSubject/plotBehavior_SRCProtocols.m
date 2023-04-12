@@ -409,29 +409,29 @@ end
 % mEotByType = sumEotByType/numDays;
 % 
 % end
-% function [allorientationValues,allCorrectResults] = combinePsyData(orientationValues,correctResults)
-% numDays = length(orientationValues);
-% numTFs = size(orientationValues{1},1);
-% 
-% allorientationValues = cell(numTFs,2);
-% allCorrectResults = cell(numTFs,2);
-% for i=1:numTFs
-%     for j=1:2
-%         allorientationValues{i,j} = [];
-%         allCorrectResults{i,j}  = [];
-%     end
-% end
-% 
-% for i=1:numTFs
-%     for j=1:2
-%         for k=1:numDays
-%             allorientationValues{i,j} = [allorientationValues{i,j} orientationValues{k}{i,j}];
-%             allCorrectResults{i,j}  = [allCorrectResults{i,j}  correctResults{k}{i,j}];
-%         end
-%     end
-% end
-% 
-% end
+function [allorientationValues,allCorrectResults] = combinePsyData(orientationValues,correctResults)
+numDays = length(orientationValues);
+numTFs = size(orientationValues{1},1);
+
+allorientationValues = cell(numTFs,2);
+allCorrectResults = cell(numTFs,2);
+for i=1:numTFs
+    for j=1:2
+        allorientationValues{i,j} = [];
+        allCorrectResults{i,j}  = [];
+    end
+end
+
+for i=1:numTFs
+    for j=1:2
+        for k=1:numDays
+            allorientationValues{i,j} = [allorientationValues{i,j} orientationValues{k}{i,j}];
+            allCorrectResults{i,j}  = [allCorrectResults{i,j}  correctResults{k}{i,j}];
+        end
+    end
+end
+
+end
 % function [xList,mReactTimeArray,stdReactTimeArray] = combineReactionTimeData(xValsAll,reactTimesAll)
 % 
 % numDays = length(reactTimesAll);

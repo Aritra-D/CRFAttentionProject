@@ -16,7 +16,7 @@ clear; close all;
 % \Programs\DataMAP\SubjectData\gridType. This file has a list of six parameters -
 % subjectName, expDate, protocolName, stimType, deviceName and capLayout.
 
-projectName = 'CRFAttention'; gridType = 'EEG'; protocolType = 'OldData'; folderSourceString = fullfile('E:\data\human',protocolType);
+projectName = 'CRFAttention'; gridType = 'EEG'; protocolType = 'SRCLong'; folderSourceString = fullfile('E:\data\human',protocolType);
 % subjectName = 'test'; gridType = 'EEG'; folderSourceString = 'E:';
 
 [subjectNames,expDates,protocolNames,stimTypes,deviceNames,capLayouts] = eval(['allProtocols' upper(projectName(1)) projectName(2:end) gridType 'v1']);
@@ -31,7 +31,7 @@ projectName = 'CRFAttention'; gridType = 'EEG'; protocolType = 'OldData'; folder
 % [sfList,oriList] = eval(['allProtocolDetails' upper(projectName(1)) projectName(2:end) gridType]);
 % extractTheseIndices = unique([sfList(:);oriList(:)]);
 
-extractTheseIndices = 464:466;%[461 462];  
+extractTheseIndices = 261:262;%[461 462];  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -1,3 +1,5 @@
+% Plots Gamma power in Bipolar Ref Scheme; prior to finalizing of Thesis
+% and Paper
 function plotFigures_SFORIProtocols_HumanEEG(protocolType,...
     SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,topoplot_style)
 

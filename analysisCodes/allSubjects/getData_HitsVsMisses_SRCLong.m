@@ -1,4 +1,8 @@
-function [psdData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_HitsVsMisses_SRCLong(protocolType,gridType,badTrialStr,bootstrapTimes)
+function [psdData,freqRanges_SubjectWise,badHighPriorityElecs,badElecs] = getData_HitsVsMisses_SRCLong(protocolType,gridType,badTrialStr,targetOnsetMatchingChoice,targetTimeBinWidthMS,bootstrapTimes)
+
+close all;
+
+if ~exist('gridType','var');            gridType='EEG';      end
 
 [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType);
 capType = 'actiCap64';
@@ -9,21 +13,19 @@ timingParameters.blRange = [-1.000 0];
 timingParameters.tgRange = [-1.000 0];
 
 
-fileName = ['E:\allGoodStimNums_bootStrap_' num2str(bootstrapTimes) '.mat'];
+fileName = ['E:\allGoodStimNums_bootStrap_' num2str(bootstrapTimes) '_targetOnsetMatchingChoice_' num2str(targetOnsetMatchingChoice) '_targetTimeBinWidthMS_' num2str(targetTimeBinWidthMS) '_badTrial_' badTrialStr '.mat'];
 if exist(fileName,'file')
     load(fileName)
 else
-    targetOnsetMatchingChoice = 1;
-    targetTimeBinWidthMS = 250;
     allTargetOnsetTimes = getAllTargetOnsetTimes(gridType,protocolType,badTrialStr);
     allGoodStimNums = cell(1,bootstrapTimes);
     for i= 1: bootstrapTimes
         allGoodStimNums{i} = getGoodStimNums_SRCLong(allTargetOnsetTimes,targetOnsetMatchingChoice,targetTimeBinWidthMS);
     end
-    save(fileName,'allGoodStimNums')
+    save(fileName,'allGoodStimNums');
 end
 
-for iRef = 1:2
+for iRef = 1:1
     switch iRef
         case 1; refType = 'unipolar';
         case 2; refType = 'bipolar';
@@ -94,7 +96,7 @@ for iRef = 1:2
                 disp('Bad trial file does not exist...');
                 badElecs = [];
             else
-                [badTrials,badElectrodes] = loadBadTrials(badTrialFile);
+                [badTrials,badElectrodes,badTrialsUnique] = loadBadTrials(badTrialFile);
                 badElecsAll = unique([badElectrodes.badImpedanceElecs; badElectrodes.noisyElecs; badElectrodes.flatPSDElecs; badElectrodes.flatPSDElecs]);
             end
             
@@ -159,9 +161,9 @@ for iRef = 1:2
                         case 12; c = 1; tf = 3; eotCode = 2; attLoc = 1;  s=1;
                     end
                     
-                    goodPos_TMP = setdiff(parameterCombinations.targetOnset{c,tf,eotCode,attLoc,s},badTrials);
+                    goodPos_TMP = setdiff(parameterCombinations.targetOnset{c,tf,eotCode,attLoc,s},union(badTrials,badTrialsUnique.badEyeTrials));
                     goodPosTMP = goodPos_TMP(allGoodStimNums{1,iBootStrap}{1,iSub}{1,iCondition});
-                    goodPos_all(iBootStrap,iSub,iElec,iCondition,:) = goodPosTMP;
+                    goodPos_all{iBootStrap,iCondition} = goodPosTMP;
                     goodStimNums(iBootStrap,iSub,iElec,iCondition,:) = length(goodPosTMP); 
                     
                     % Segmenting data according to timePos
@@ -248,8 +250,6 @@ psdData.freqVals = freqVals;
 psdData.goodPos = goodPos_allRef;
 psdData.goodStimNums = goodStimNums_allRef;
 
-fileSave = ['E:\HitsVsMissesData_bootstrap_' num2str(bootstrapTimes) '.mat']; 
-save(fileSave,'psdData','freqRanges_SubjectWise','badHighPriorityElecs','badElecs')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -262,7 +262,7 @@ load(fullfile(folderExtract,'parameterCombinations.mat')); %#ok<*LOAD>
 end
 
 % Get Bad Trials
-function [badTrials,badElecs] = loadBadTrials(badTrialFile) %#ok<*STOUT>
+function [badTrials,badElecs,badTrialsUnique] = loadBadTrials(badTrialFile) %#ok<*STOUT>
 load(badTrialFile);
 % badEyeTrials = badTrialsUnique.badEyeTrials;
 end

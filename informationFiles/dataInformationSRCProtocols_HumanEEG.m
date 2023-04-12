@@ -1,14 +1,14 @@
-function [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType)
+function [subjectNames,expDates,protocolNames,dataFolderSourceString] = dataInformationSRCProtocols_HumanEEG(gridType,protocolType,dataFolderSourceString)
 
-if ~exist('gridType','var')                            
-    gridType = 'EEG';
-end
-
-% FolderSourceString for extracted dataset
-if strcmp(getenv('computername'),'RAYLABPC-ARITRA') || strcmp(getenv('username'),'RayLabPC-Aritra')
-    dataFolderSourceString = 'E:\data\human\SRCLong';
-else
-    dataFolderSourceString = 'M:\';
+if ~exist('gridType','var');               gridType = 'EEG';   end
+if ~exist('protocolType','var');           protocolType = 'SRC-Long';   end
+if ~exist('dataFolderSourceString','var')
+    % FolderSourceString for extracted dataset
+    if strcmp(getenv('computername'),'RAYLABPC-ARITRA') || strcmp(getenv('username'),'RayLabPC-Aritra')
+        dataFolderSourceString = fullfile('E:','data','human','SRCLong');
+    else % Network Drive
+        dataFolderSourceString = fullfile('M:','Projects','Aritra_AttentionEEGProject','data','SRCLong');
+    end
 end
 
 [allSubjectNames,allExpDates,allProtocolNames,~,~,~] = eval(['allProtocolsCRFAttention' gridType 'v1']);
@@ -91,5 +91,6 @@ for i=1:numSubjects
     subjectNames{i} = allSubjectNames{protocolList{i}};
     expDates{i} = allExpDates{protocolList{i}};
     protocolNames{i} = allProtocolNames{protocolList{i}};
+end
 end
 

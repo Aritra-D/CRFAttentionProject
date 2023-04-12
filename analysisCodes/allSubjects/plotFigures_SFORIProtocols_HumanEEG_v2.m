@@ -1,4 +1,5 @@
-% This version only analyzes total Gamma for Unipolar Ref Scheme 
+% This version only analyzes total Gamma for Unipolar Ref Scheme; used in
+% Thesis and Paper
 function plotFigures_SFORIProtocols_HumanEEG_v2(protocolType,...
     SSVEPAnalysisMethod,removeBadElectrodeData,subjectIdx,topoplot_style,badTrialStr)
 
@@ -22,7 +23,7 @@ freqRanges{6} = [44 56];   % Fast Gamma
 freqRanges{7} = [102 250]; % High Gamma
 
 numFreqs = length(freqRanges); %#ok<*NASGU>
-removeBadEyeTraialsFlag = 0;
+removeBadEyeTraialsFlag = 1;
 
 fileName = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     [protocolType '_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
@@ -56,8 +57,8 @@ if SSVEPAnalysisMethod == 2
 end
 
 % remove Bad Electrodes- converting the data for bad Elecs to NaN
-subjectIdsWithRefAdjacentElecArtifacts = [12:28]; 
-declaredBadElectrodes = [8 9 10 11 43 44];%[8 9 10 11 43 44]; %  13 47 52 15 50 54
+subjectIdsWithRefAdjacentElecArtifacts = []; %[12:28]; 
+declaredBadElectrodes = [];%[8 9 10 11 43 44]; %  13 47 52 15 50 54
 
 if removeBadElectrodeData
     for iSub = 1:length(subjectIdx)
@@ -183,6 +184,8 @@ for i=1:2 % 1- all SF-Ori conditions, 2- max Gamma SF-Ori condition
 end
 
 elecList = elecUnipolarList;
+freqCutOff = 100;
+
 % for iRef= 1:2
 %     switch iRef
 %         case 1; elecList = elecUnipolarList;
@@ -207,19 +210,19 @@ elecList = elecUnipolarList;
             if iTF== 1
                 subplot(hPlot2(refType,i))
                 yyaxis left
-                plot(hPlot2(refType,i),energyData.freqVals,psdBLTMP,'-g','LineWidth',lineWidth); hold (hPlot2(refType,i),'on')
-                plot(hPlot2(refType,i),energyData.freqVals,psdSTTMP,'-k','LineWidth',lineWidth);
+                plot(hPlot2(refType,i),energyData.freqVals(1:freqCutOff+1),psdBLTMP(1:freqCutOff+1),'-g','LineWidth',lineWidth); hold (hPlot2(refType,i),'on')
+                plot(hPlot2(refType,i),energyData.freqVals(1:freqCutOff+1),psdSTTMP(1:freqCutOff+1),'-k','LineWidth',lineWidth);
 %                 ylim([-4 4])
                 yyaxis right
-                plot(hPlot2(refType,i),energyData.freqVals,deltapsdTMP,'b','LineWidth',lineWidth);
+                plot(hPlot2(refType,i),energyData.freqVals(1:freqCutOff+1),deltapsdTMP(1:freqCutOff+1),'b','LineWidth',lineWidth);
 %                 ylim([-4 4])
             elseif iTF==2
                 subplot(hPlot3(refType,i))
                 yyaxis left
-                plot(hPlot3(refType,i),energyData.freqVals,psdBLTMP,'-g','LineWidth',lineWidth); hold (hPlot3(refType,i),'on')
-                plot(hPlot3(refType,i),energyData.freqVals,psdSTTMP,'-k','LineWidth',lineWidth);
+                plot(hPlot3(refType,i),energyData.freqVals(1:freqCutOff+1),psdBLTMP(1:freqCutOff+1),'-g','LineWidth',lineWidth); hold (hPlot3(refType,i),'on')
+                plot(hPlot3(refType,i),energyData.freqVals(1:freqCutOff+1),psdSTTMP(1:freqCutOff+1),'-k','LineWidth',lineWidth);
                 yyaxis right
-                plot(hPlot3(refType,i),energyData.freqVals,deltapsdTMP,'b','LineWidth',lineWidth);
+                plot(hPlot3(refType,i),energyData.freqVals(1:freqCutOff+1),deltapsdTMP(1:freqCutOff+1),'b','LineWidth',lineWidth);
             end
         end
     end
@@ -283,15 +286,15 @@ elecList = elecUnipolarList;
 % end
 
 fontSize = 14;
-title(hPlot1(1,1),'all SF-Ori','fontSize',fontSize)
-title(hPlot1(1,2),'Max Gamma SF-Ori','fontSize',fontSize)
+title(hPlot1(1,1),{'all' 'SF-Ori'},'fontSize',fontSize)
+title(hPlot1(1,2),{'Max Gamma' 'SF-Ori'},'fontSize',fontSize)
 
 neuralMeasuresLabels{1} = {'alpha' '(8-12 Hz)'};
 neuralMeasuresLabels{2} = {'Gamma' [' (' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) ' Hz)']};
 neuralMeasuresLabels{3} = {'SSVEP' '(32 Hz)'};
 
 for i=1:3
-annotation('textbox',[0.02 0.76-(i-1)*0.27 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',16);
+annotation('textbox',[0.02 0.77-(i-1)*0.27 0.08 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',16);
 end  
 
 
@@ -303,11 +306,11 @@ for i= 1:3
     end
 end
 
-title(hPlot2(1,1),'all SF-Ori','fontSize',fontSize)
-title(hPlot2(1,2),'Max Gamma SF-Ori','fontSize',fontSize)
+title(hPlot2(1,1),{'all' 'SF-Ori'},'fontSize',fontSize)
+title(hPlot2(1,2),{'Max Gamma' 'SF-Ori'},'fontSize',fontSize)
 
-title(hPlot3(1,1),'all SF-Ori','fontSize',fontSize)
-title(hPlot3(1,2),'Max Gamma SF-Ori','fontSize',fontSize)
+title(hPlot3(1,1),{'all' 'SF-Ori'},'fontSize',fontSize)
+title(hPlot3(1,2),{'Max Gamma' 'SF-Ori'},'fontSize',fontSize)
 
 if SSVEPAnalysisMethod ==1
     yLims1 = [-4 4];
@@ -343,10 +346,17 @@ for i=1:2
     set(hPlot2(2,i),'box','off','fontSize',fontSize,'YTick',[-3  0 2],'tickLength',4*tickPlotLength,'TickDir','out')
     set(hPlot3(2,i),'box','off','fontSize',fontSize,'YTick',[-3 0 3 6 9],'tickLength',4*tickPlotLength,'TickDir','out')
     set(hPlot3(2,i),'box','off','fontSize',fontSize)
-    xline(hPlot2(1,i),8,'k','LineWidth',lineWidth); xline(hPlot2(1,i),12,'k','LineWidth',lineWidth)
-    xline(hPlot2(1,i),freqRanges{2}(1),'r','LineWidth',lineWidth); xline(hPlot2(1,i),freqRanges{2}(2),'-r','LineWidth',lineWidth)
-    xline(hPlot3(1,i),8,'k','LineWidth',lineWidth); xline(hPlot3(1,i),12,'k','LineWidth',lineWidth)
-    xline(hPlot3(1,i),freqRanges{2}(1),'r','LineWidth',lineWidth); xline(hPlot3(1,i),freqRanges{2}(2),'-r','LineWidth',lineWidth)
+    %     xline(hPlot2(1,i),8,'k','LineWidth',lineWidth); xline(hPlot2(1,i),12,'k','LineWidth',lineWidth)
+    %     xline(hPlot2(1,i),freqRanges{2}(1),'r','LineWidth',lineWidth); xline(hPlot2(1,i),freqRanges{2}(2),'-r','LineWidth',lineWidth)
+    %     xline(hPlot3(1,i),8,'k','LineWidth',lineWidth); xline(hPlot3(1,i),12,'k','LineWidth',lineWidth)
+    %     xline(hPlot3(1,i),freqRanges{2}(1),'r','LineWidth',lineWidth); xline(hPlot3(1,i),freqRanges{2}(2),'-r','LineWidth',lineWidth)
+    
+    patch([8 12 12 8],[-4 -4 -3.8 -3.8],'k','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(1,i))
+    patch([25 70 70 25],[-4 -4 -3.8 -3.8],'r','FaceAlpha',1,'EdgeColor','none','parent',hPlot2(1,i))
+    patch([8 12 12 8],[-4 -4 -3.62 -3.62],'k','FaceAlpha',1,'EdgeColor','none','parent',hPlot3(1,i))
+    patch([25 70 70 25],[-4 -4 -3.62 -3.62],'r','FaceAlpha',1,'EdgeColor','none','parent',hPlot3(1,i))
+
+    
     xline(hPlot3(1,i),32,'c','LineWidth',lineWidth);
     yline(hPlot2(1,i),0,'--k','LineWidth',lineWidth)
     yline(hPlot3(1,i),0,'--k','LineWidth',lineWidth)
@@ -380,14 +390,14 @@ elseif SSVEPAnalysisMethod == 2
     ssvepMethod = 'SSVEP_trialAvg';
 end
 
-saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\SF-Ori\');
+saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\JNeuroFigures\');
 figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx)) '_' protocolType '_tapers_',num2str(tapers(2)) '_' ssvepMethod...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
     '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr]);
 
-saveas(hFig1,[figName 'v5.fig'])
-print(hFig1,[figName 'v5.tif'],'-dtiff','-r600')
+saveas(hFig1,[figName '.fig'])
+print(hFig1,[figName '.tif'],'-dtiff','-r600')
 
 
 end

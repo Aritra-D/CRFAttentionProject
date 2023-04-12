@@ -7,6 +7,7 @@ if ~exist('folderSourceString','var');  folderSourceString='E:\';        end
 if ~exist('gridType','var');            gridType='EEG';      end
 
 tapers = [1 1];
+removeBadEyeTrialsFlag = 1;
 
 timingParameters.blRange = [-0.5 0];
 timingParameters.stRange = [0.25 0.75];
@@ -39,7 +40,6 @@ else
 end
 
 plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style,badTrialStr)
-removeBadEyeTrialsFlag = 0;
 fileName2 = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     [protocolType2 '_tapers_' num2str(tapers(2)) '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
@@ -156,7 +156,7 @@ if plotConsolidatedResultsFlag
                     end
                     BLPower = squeeze(mean(BLPowerTMP,1));
                     STPower = squeeze(mean(STPowerTMP,1));
-                    colorRange = colorAxis_ssvep{1}; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
+                    colorRange = colorAxis_ssvep{1}; chanLocs = chanlocs_Unipolar; showElecs = elecList_Unipolar_Right;
                 case 4
                     neuralMeasures = [3 4]; refType = 1; TF = 2;
                     for k=1:length(neuralMeasures)
@@ -171,7 +171,7 @@ if plotConsolidatedResultsFlag
                     end
                     BLPower = squeeze(mean(BLPowerTMP,1));
                     STPower = squeeze(mean(STPowerTMP,1));
-                    colorRange = colorAxis_ssvep{2}; chanLocs = chanlocs_Unipolar; showElecs = elecUnipolarList;
+                    colorRange = colorAxis_ssvep{2}; chanLocs = chanlocs_Unipolar; showElecs = elecList_Unipolar_Right;
             end
             topoPlotDataTMP = 10*(squeeze(mean(log10(STPower),1,nanFlag)) - squeeze(mean(log10(BLPower),1,nanFlag)));
             subplot(hPlot1(i,j+1)); cla; hold on;
@@ -284,7 +284,7 @@ if plotConsolidatedResultsFlag
 
     yline(hPlot2(2,1),0,'--k','LineWidth',1.2);
     yline(hPlot2(3,1),0,'--k','LineWidth',1.2);
-    yline(hPlot2(1,1),-2,'--k','LineWidth',1.2);
+%     yline(hPlot2(1,1),-2,'--k','LineWidth',1.2);
 
     
     xlabel(hPlot2(3,1),'azi/ele/diam (degree)')
@@ -296,23 +296,23 @@ if plotConsolidatedResultsFlag
    
     neuralMeasuresLabels{1} = {'alpha' '(8-12 Hz)'};
     neuralMeasuresLabels{2} = {'Gamma' '(25-70 Hz)'};
-    neuralMeasuresLabels{3} = {'SSVEP' 'Single Trial Estimate' };
-    neuralMeasuresLabels{4} = {'SSVEP' 'Trial Avg Estimate' };
+    neuralMeasuresLabels{3} = {'SSVEP' 'Trial-by-Trial' };
+    neuralMeasuresLabels{4} = {'SSVEP' 'Trial Avg' };
     
     for i=1:4
-        annotation('textbox',[0.0 0.86-(i-1)*0.22 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',14);
+        annotation('textbox',[0.0 0.8697-(i-1)*0.22 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',14);
     end
     
-    for i= 1:4
-        for j = 1:4
-            set(hPlot1(i,j),'fontSize',12,'tickLength',2*tickLength,'TickDir','out')
-        end
-    end
+%     for i= 1:4
+%         for j = 1:4
+%             set(hPlot1(i,j),'fontSize',12,'tickLength',2*tickLength,'TickDir','out')
+%         end
+%     end
     
     
     
     fontSize = 14;
-    strList = {'FS','2 ','4 ','6 ','8 '};
+    strList = {'FS','  2 ','  4 ','  6 ','  8 '};
     for j=1:5
         if j==1
             title(hPlot1(1,j),[strList{j}],'fontSize', fontSize)
@@ -512,7 +512,7 @@ else
     neuralMeasuresLabels{5} = {'SSVEP' '(32 Hz)'};
     
     for i=1:5
-        annotation('textbox',[0.0 0.88-(i-1)*0.18 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',12);
+        annotation('textbox',[0.0 0.82-(i-1)*0.18 0.07 0.0252],'EdgeColor','none','HorizontalAlignment','center','String',neuralMeasuresLabels{i},'fontSize',12);
     end
     
     for i= 1:5
@@ -530,22 +530,22 @@ elseif SSVEPAnalysisMethod == 2
     ssvepMethod = 'SSVEP_trialAvg';
 end
 
-saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\Mapping\');
+saveFolder = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\Figures\JNeuroFigures\');
 
 figName = fullfile(saveFolder,['allSubjects_N_' num2str(length(subjectIdx))...
     '_' protocolType2 '_tapers_',num2str(tapers(2)) '_' ssvepMethod...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
     '_SG_' num2str(freqRanges{5}(1)) '-' num2str(freqRanges{5}(2)) 'Hz'...
     '_FG_' num2str(freqRanges{6}(1)) '-' num2str(freqRanges{6}(2)) 'Hz_' 'badTrial_' badTrialStr]);
-saveas(hFig,[figName 'v3.fig'])
-print(hFig,[figName 'v3.tif'],'-dtiff','-r600')
+saveas(hFig,[figName '.fig'])
+print(hFig,[figName '.tif'],'-dtiff','-r600')
 
 end
 
 % Accessory Functions
 function plotSFOriData(hPlot1,subjectIdx,folderSourceString,timingParameters,freqRanges,tapers,removeBadElectrodeData,topoplot_style,badTrialStr)
 protocolType1 = 'SFOri-MappingGroup'; gridType = 'EEG';
-removeBadEyeTrialsFlag =0;
+removeBadEyeTrialsFlag =1;
 fileName1 = fullfile(folderSourceString,'Projects\Aritra_AttentionEEGProject\savedData\',...
     [protocolType1 '_tapers_' num2str(tapers(2)) ...
     '_TG_' num2str(freqRanges{2}(1)) '-' num2str(freqRanges{2}(2)) 'Hz'...
@@ -640,11 +640,21 @@ for j = 1: length(neuralMeasures) % 1- alpha, 2- gamma, 3- slow gamma, 4- fast g
     
     topoPlotDataTMP = 10*(squeeze(mean(log10(STPower{j}),1,nanFlag)) - squeeze(mean(log10(BLPower{j}),1,nanFlag)));
     subplot(hPlot1(j,1)); cla; hold on;
-    topoplot_murty(topoPlotDataTMP,chanLocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlotDataTMP);
+    topoplot_murty(topoPlotDataTMP,chanLocs,'electrodes','on','style',topoplot_style,'drawaxis','off','nosedir','+X','emarkercolors',topoPlotDataTMP);zoom(0.5)
     caxis(colorRange); cTicks = [colorRange(1) 0 colorRange(2)]; cBar = colorbar;
+    topoplot_murty([],chanLocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecs);
     tickPlotLength = get(hPlot1(1,1),'TickLength'); fontSize = 12;
     set(cBar,'Ticks',cTicks,'tickLength',3*tickPlotLength(1),'TickDir','out','fontSize',fontSize);
-    topoplot_murty([],chanLocs,'electrodes','on','style','blank','drawaxis','off','nosedir','+X','plotchans',showElecs);
+    
+    if j==3 % Fix colorbar alignment issue for the topoplot in the last row
+        topoPlotColorBarPos = get(cBar,'Position');
+    end
+    
+    if j==4
+        topoPlotColorBarPos2 = get(cBar,'Position');
+        alignedTopoPlotColorBarPos = [0.1612 0.1095 topoPlotColorBarPos2(3) 0.1715];
+        set(cBar,'Position',alignedTopoPlotColorBarPos);
+    end
 end
 end
 

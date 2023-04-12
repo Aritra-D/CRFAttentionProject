@@ -2728,5 +2728,45 @@
         "capLayout": "actiCap64",
         "stimType": 7,
         "comment": "Behavior + EEG"
-    }
+    },
+    {
+        "index": 274,
+        "deviceName": "BP",
+        "subjectNames": "DG",
+        "expDates": "070122",
+        "protocolNames": "SRC_001",
+        "capLayout": "actiCap64",
+        "stimType": 7,
+        "comment": "Behavior + EEG"
+    },
+    {
+        "index": 275,
+        "deviceName": "BP",
+        "subjectNames": "DG",
+        "expDates": "070122",
+        "protocolNames": "SRC_002",
+        "capLayout": "actiCap64",
+        "stimType": 7,
+        "comment": "Behavior + EEG"
+    },
+    {
+        "index": 276,
+        "deviceName": "BP",
+        "subjectNames": "DG",
+        "expDates": "070122",
+        "protocolNames": "SRC_003",
+        "capLayout": "actiCap64",
+        "stimType": 7,
+        "comment": "Behavior + EEG"
+    },
+    {
+        "index": 277,
+        "deviceName": "BP",
+        "subjectNames": "DG",
+        "expDates": "070122",
+        "protocolNames": "SRC_004",
+        "capLayout": "actiCap64",
+        "stimType": 7,
+        "comment": "Behavior + EEG"
+    },
 ]
